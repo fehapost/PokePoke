@@ -2337,8 +2337,16 @@ function continuarJogo(){
 
 /* ============ INTERACTION ============ */
 function voltarBotaoB(){
-  // Em batalha: volta de submenu (ataques/bolas) para o menu principal
-  if(emBatalha){ if(subMenuAtaques||subMenuBolas) menuPrincipal(); return; }
+  // Em batalha: o Voltar desfaz um passo de cada vez.
+  if(emBatalha){
+    // 1) modal de stats de Pokémon aberto -> fecha
+    if($('modal-pkm') && $('modal-pkm').style.display==='flex'){ fecharStatsPokemon(); return; }
+    // 2) tela de Pokémon (troca) aberta -> fecha, exceto se a troca for obrigatória
+    if(emParty){ if(!trocaObrigatoria) fecharParty(); return; }
+    // 3) submenu de ataques/bolas -> menu principal
+    if(subMenuAtaques||subMenuBolas){ menuPrincipal(); return; }
+    return; // já no menu principal: nada a desfazer
+  }
   // Fora da batalha: fecha o que estiver aberto
   if(mostrandoNotificacao){ fecharNotificacao(); return; }
   if(typeof emLoja!=='undefined' && emLoja){ fecharLoja(); return; }
@@ -2653,6 +2661,20 @@ function gatilhoBatalha(callback){
     callback();
   };
 }
+// Nível de um encontro selvagem a partir do nível L do Pokémon do jogador.
+// Distribuição: 50% dentro de ±3 níveis; 25% abaixo (1..L-4); 25% acima (L+4..L+10).
+// Faixa total possível: do nível 1 até L+10.
+function nivelEncontro(L){
+  const r=Math.random();
+  let lo, hi;
+  if(r<0.50){ lo=L-3; hi=L+3; }        // 50%: entre 3 abaixo e 3 acima
+  else if(r<0.75){ lo=1;   hi=L-4; }   // 25%: mais que 3 níveis abaixo
+  else { lo=L+4; hi=L+10; }            // 25%: mais que 3 níveis acima (até +10)
+  lo=Math.max(1, lo); hi=Math.max(lo, hi);
+  return lo + Math.floor(Math.random()*(hi-lo+1));
+}
+// Força de um golpe (1=fraco .. 4=mais forte) a partir do poder — escala os efeitos visuais.
+function forcaAtaque(atq){ let p=(atq&&atq.p)||0; return p<=16?1 : p<=27?2 : p<=40?3 : 4; }
 function sortearSelvagem(levelRef){
   // candidatos que podem aparecer nesse nível
   let cands=Object.keys(BASE_POKEMONS).filter(k=> +BASE_POKEMONS[k].id<=151
@@ -2669,7 +2691,7 @@ function iniciarBatalhaSelvagem(automatica=false){
   if(!automatica&&MAPA[player.y][player.x]!==2){mostrarAviso("Ande pelo mato alto verde para encontrar Pokémon."); return;}
   emBatalha=true; subMenuAtaques=false; batalhaTreinador=false;
   pkmAtivoJogador=equipeAtiva.find(p=>p.hp>0)||equipeAtiva[0];
-  let levelRef=Math.max(2,pkmAtivoJogador.level+Math.floor(Math.random()*5)-2);
+  let levelRef=nivelEncontro(pkmAtivoJogador.level);
   let nome=sortearSelvagem(levelRef);
   pkmInimigo=criarInstanciaPokemon(nome,levelRef);
   if(registroDex[pkmInimigo.nome]==='oculto')registroDex[pkmInimigo.nome]='visto';
@@ -2814,32 +2836,77 @@ const FX_FAMILIA={
 let fxTimers=[];
 function limparFxTimers(){ fxTimers.forEach(t=>{clearTimeout(t);clearInterval(t);}); fxTimers=[]; }
 // Efeito de ataque de 2s sobre o alvo. Retorna nada; chamadas externas cuidam do HP.
-function efeitoAtaque(tipo, alvoLayerId){
+// Efeito de ataque sobre o alvo. `forca` (1..4) escala quantidade/tamanho das
+// partículas e libera efeitos especiais nas habilidades mais fortes.
+function efeitoAtaque(tipo, alvoLayerId, forca){
+  forca = Math.max(1, Math.min(4, forca||1));
   let fam=FX_FAMILIA[tipo]||FX_FAMILIA.NORMAL;
   let cor=CORES_TIPO[tipo]||'#fff';
   let layer=$(alvoLayerId); if(!layer)return;
   layer.innerHTML='';
+  // brilho de fundo: maior e mais intenso conforme a força
   let glow=document.createElement('div'); glow.className='fx-glow';
-  glow.style.background=`radial-gradient(circle, ${cor} 0%, transparent 65%)`;
-  glow.style.animation=`fxGlowAnim 2s ease-out forwards`;
+  glow.style.background=`radial-gradient(circle, ${cor} 0%, transparent ${55+forca*6}%)`;
+  glow.style.animation=`fxGlowAnim ${1.8+forca*0.1}s ease-out forwards`;
+  glow.style.opacity=String(0.45+forca*0.12);
   layer.appendChild(glow);
-  let total=Math.ceil(2000/220); let i=0;
+  // partículas por rajada = força+1 (2,3,4,5); tamanho e duração crescem com a força
+  const porRajada=forca+1;
+  const totalRajadas=Math.ceil((1500+forca*260)/220); let i=0;
   let timer=setInterval(()=>{
-    for(let n=0;n<3;n++){
+    for(let n=0;n<porRajada;n++){
       let p=document.createElement('div'); p.className='fx-p'; p.textContent=fam.ic;
-      p.style.left=(15+Math.random()*100)+'px'; p.style.top=(20+Math.random()*90)+'px';
-      p.style.setProperty('--dx',(Math.random()*60-30)+'px');
-      p.style.setProperty('--dy',(-30-Math.random()*30)+'px');
+      p.style.left=(10+Math.random()*110)+'px'; p.style.top=(15+Math.random()*95)+'px';
+      p.style.setProperty('--dx',(Math.random()*70-35)+'px');
+      p.style.setProperty('--dy',(-30-Math.random()*40)+'px');
       let dur=fam.dur*(0.8+Math.random()*0.5);
       p.style.animation=`${fam.anim} ${dur}s ease-out forwards`;
-      p.style.fontSize=(15+Math.random()*12)+'px';
+      p.style.fontSize=((12+forca*4)+Math.random()*12)+'px';
+      if(forca>=3) p.classList.add('fx-grande');
+      // FOGO no golpe mais forte: ~40% das chamas viram azuis
+      if(tipo==='FOGO' && forca>=4 && Math.random()<0.4) p.classList.add('fx-azul');
       layer.appendChild(p);
-      let rm=setTimeout(()=>p.remove(), dur*1000+50); fxTimers.push(rm);
+      let rm=setTimeout(()=>p.remove(), dur*1000+60); fxTimers.push(rm);
     }
-    if(++i>=total){clearInterval(timer);}
+    if(++i>=totalRajadas){clearInterval(timer);}
   },220);
   fxTimers.push(timer);
-  let cg=setTimeout(()=>{ if(glow.parentNode)glow.remove(); }, 2100); fxTimers.push(cg);
+  // ----- Efeitos especiais das habilidades mais fortes -----
+  if(tipo==='ÁGUA'     && forca>=3) _fxOnda(layer, forca);                 // onda passando sobre o alvo
+  if(tipo==='ELÉTRICO' && forca>=3) _fxRaiosGrandes(layer, forca);         // raios grandes (branco -> amarelo)
+  if(tipo==='GRAMA'    && forca>=4) _fxFeixe(layer, '#7CFC00');            // feixe (Raio Solar)
+  if(tipo==='PSÍQUICO' && forca>=4) _fxFeixe(layer, CORES_TIPO['PSÍQUICO']||'#f95587');
+  let cg=setTimeout(()=>{ if(glow.parentNode)glow.remove(); }, 2300); fxTimers.push(cg);
+}
+// Onda de água que varre o alvo (1 onda na força 3, 2 ondas na força 4)
+function _fxOnda(layer, forca){
+  let n=forca>=4?2:1;
+  for(let k=0;k<n;k++){
+    let o=document.createElement('div'); o.className='fx-onda';
+    o.style.animation=`fxOndaAnim ${0.95+0.15*k}s ease-out ${k*0.28}s forwards`;
+    layer.appendChild(o);
+    let rm=setTimeout(()=>{ if(o.parentNode)o.remove(); }, 1500+k*320); fxTimers.push(rm);
+  }
+}
+// Raios grandes: o 1º é branco, os seguintes amarelos (força 3 -> 2 raios, força 4 -> 3)
+function _fxRaiosGrandes(layer, forca){
+  let n=forca>=4?3:2;
+  for(let k=0;k<n;k++){
+    let b=document.createElement('div'); b.className='fx-bolt'; b.textContent='⚡';
+    b.style.left=(18+k*40+Math.random()*8)+'px'; b.style.top=(8+Math.random()*26)+'px';
+    b.style.fontSize=(38+forca*7)+'px';
+    b.style.color = k===0 ? '#ffffff' : '#ffe04d';
+    b.style.animation=`fxBoltAnim 0.5s ease-out ${k*0.16}s forwards`;
+    layer.appendChild(b);
+    let rm=setTimeout(()=>{ if(b.parentNode)b.remove(); }, 750+k*170); fxTimers.push(rm);
+  }
+}
+// Feixe vertical (Raio Solar etc.): branco na base -> cor do tipo
+function _fxFeixe(layer, corTipo){
+  let f=document.createElement('div'); f.className='fx-feixe'; f.style.setProperty('--feixe-cor', corTipo);
+  f.style.animation=`fxFeixeAnim 0.9s ease-out forwards`;
+  layer.appendChild(f);
+  let rm=setTimeout(()=>{ if(f.parentNode)f.remove(); }, 1100); fxTimers.push(rm);
 }
 // Anima a vida descendo de hpAtual->hpNovo em ~1s
 function animarHp(quem, hpNovo, aoTerminar){
@@ -2868,8 +2935,8 @@ function turnoAtaqueJogador(atq){
   let {dmg,mult}=calcDano(pkmAtivoJogador,pkmInimigo,atq);
   let hpNovo=Math.max(0,pkmInimigo.hp-dmg);
   sfx(520,0.08,'sawtooth');
-  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-inimigo');   // efeito 2s
-  $('img-inimigo').classList.add('dano-anim'); let da=setTimeout(()=>$('img-inimigo').classList.remove('dano-anim'),300); fxTimers.push(da);
+  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-inimigo', forcaAtaque(atq));   // efeito escala com a força
+  $('img-inimigo').classList.add('dano-anim'); let da=setTimeout(()=>$('img-inimigo').classList.remove('dano-anim'),420); fxTimers.push(da);
   let efe=mult>1?' Foi super eficaz!':mult<1?' Não foi muito eficaz...':'';
   textoBatalha.innerText=`${pkmAtivoJogador.nome} usou ${atq.n}! ${dmg} de dano.${efe}`;
   // após 1s do efeito, o HP começa a descer (dura ~1s)
@@ -2887,8 +2954,8 @@ function turnoInimigo(){
   let {dmg,mult}=calcDano(pkmInimigo,pkmAtivoJogador,atq);
   let hpNovo=Math.max(0,pkmAtivoJogador.hp-dmg);
   sfx(300,0.08,'sawtooth');
-  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-jogador');
-  $('img-jogador').classList.add('dano-anim'); let da=setTimeout(()=>$('img-jogador').classList.remove('dano-anim'),300); fxTimers.push(da);
+  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-jogador', forcaAtaque(atq));
+  $('img-jogador').classList.add('dano-anim'); let da=setTimeout(()=>$('img-jogador').classList.remove('dano-anim'),420); fxTimers.push(da);
   let efe=mult>1?' Eficaz!':mult<1?' Resistiu.':'';
   textoBatalha.innerText=`${pkmInimigo.nome} usou ${atq.n}!${efe}`;
   let t=setTimeout(()=>{
@@ -3141,7 +3208,11 @@ document.documentElement.addEventListener('keydown',e=>{
   if((e.key||'').toLowerCase()==='g'){ alternarGrade(); return; }   // liga/desliga a grade de coordenadas
   if(emLoja || $('modal-custom').style.display==='flex')return;
   // Em batalha: só os atalhos de batalha (Q/W/A/S + Espaço já tratado). Movimento/menus bloqueados.
-  if(emBatalha){ if(e.code==='Space'){e.preventDefault();} tratarAtalhos(e.key||e.code); return; }
+  if(emBatalha){
+    // B/Voltar é tratado de forma unificada (submenu, tela de Pokémon, stats)
+    if((e.key||'').toLowerCase()==='b'){ voltarBotaoB(); return; }
+    if(e.code==='Space'){e.preventDefault();} tratarAtalhos(e.key||e.code); return;
+  }
   if(e.code==='Space'){e.preventDefault(); iniciarBatalhaSelvagem(false); return;}
   let k=e.key.toLowerCase();
   if(k==='e')interagirBotaoE();
