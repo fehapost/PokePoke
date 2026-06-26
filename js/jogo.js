@@ -9,7 +9,7 @@ setInterval(()=>{ npcVirado=!npcVirado; if(typeof desenharMundo==='function' && 
 let estadoPerna=false, direcaoAtual='baixo';
 let labirintoLimpo=false; // vira true quando o boss do labirinto é derrotado (luzes acendem)
 let mostrandoNotificacao=false, callbackNotificacao=null;
-let emBatalha=false, batalhaTreinador=false, subMenuAtaques=false;
+let emBatalha=false, batalhaTreinador=false, subMenuAtaques=false, subMenuBolas=false;
 let emParty=false, emPokedex=false, vindoDeBatalha=false, esperandoEspaco=false, trocaObrigatoria=false;
 let jogoIniciado=false;
 let player={x:8,y:10};
@@ -307,18 +307,18 @@ const DADOS_151=[
 ];
 
 const POOLS_ATAQUES={
-  'NORMAL':[{n:'Investida',p:12,t:'NORMAL',lvlReq:1},{n:'Ataque Rápido',p:16,t:'NORMAL',lvlReq:10},{n:'Pancada',p:25,t:'NORMAL',lvlReq:20},{n:'Hiper Raio',p:50,t:'NORMAL',lvlReq:30},{n:'Giga Impacto',p:80,t:'NORMAL',lvlReq:40}],
-  'FOGO':[{n:'Brasa',p:14,t:'FOGO',lvlReq:1},{n:'Roda de Fogo',p:20,t:'FOGO',lvlReq:10},{n:'Lança-Chamas',p:35,t:'FOGO',lvlReq:20},{n:'Explosão',p:50,t:'FOGO',lvlReq:30}],
-  'ÁGUA':[{n:'Bolhas',p:12,t:'ÁGUA',lvlReq:1},{n:'Jato d\'Água',p:18,t:'ÁGUA',lvlReq:10},{n:'Surf',p:28,t:'ÁGUA',lvlReq:20},{n:'Hidro Bomba',p:45,t:'ÁGUA',lvlReq:30}],
-  'GRAMA':[{n:'Absorver',p:12,t:'GRAMA',lvlReq:1},{n:'Chicote de Cipó',p:18,t:'GRAMA',lvlReq:10},{n:'Folha Navalha',p:26,t:'GRAMA',lvlReq:20},{n:'Raio Solar',p:45,t:'GRAMA',lvlReq:30}],
-  'ELÉTRICO':[{n:'Choque',p:13,t:'ELÉTRICO',lvlReq:1},{n:'Faísca',p:20,t:'ELÉTRICO',lvlReq:10},{n:'Choque do Trovão',p:30,t:'ELÉTRICO',lvlReq:20},{n:'Trovão',p:48,t:'ELÉTRICO',lvlReq:30}],
-  'PSÍQUICO':[{n:'Confusão',p:14,t:'PSÍQUICO',lvlReq:1},{n:'Pulso Mental',p:22,t:'PSÍQUICO',lvlReq:10},{n:'Psíquico',p:35,t:'PSÍQUICO',lvlReq:20}],
-  'PEDRA':[{n:'Lançar Pedra',p:14,t:'PEDRA',lvlReq:1},{n:'Avalanche',p:24,t:'PEDRA',lvlReq:12},{n:'Deslize de Pedras',p:34,t:'PEDRA',lvlReq:24}],
-  'LUTADOR':[{n:'Golpe Baixo',p:14,t:'LUTADOR',lvlReq:1},{n:'Chute Duplo',p:22,t:'LUTADOR',lvlReq:10},{n:'Soco Dinâmico',p:36,t:'LUTADOR',lvlReq:24}]
+  'NORMAL':[{n:'Investida',p:12,t:'NORMAL',lvlReq:1,pp:25},{n:'Ataque Rápido',p:16,t:'NORMAL',lvlReq:10,pp:25},{n:'Pancada',p:25,t:'NORMAL',lvlReq:20,pp:20},{n:'Hiper Raio',p:50,t:'NORMAL',lvlReq:30,pp:10},{n:'Giga Impacto',p:80,t:'NORMAL',lvlReq:40,pp:5}],
+  'FOGO':[{n:'Brasa',p:14,t:'FOGO',lvlReq:1,pp:25},{n:'Roda de Fogo',p:20,t:'FOGO',lvlReq:10,pp:20},{n:'Lança-Chamas',p:35,t:'FOGO',lvlReq:20,pp:15},{n:'Explosão',p:50,t:'FOGO',lvlReq:30,pp:10}],
+  'ÁGUA':[{n:'Bolhas',p:12,t:'ÁGUA',lvlReq:1,pp:25},{n:'Jato d\'Água',p:18,t:'ÁGUA',lvlReq:10,pp:20},{n:'Surf',p:28,t:'ÁGUA',lvlReq:20,pp:20},{n:'Hidro Bomba',p:45,t:'ÁGUA',lvlReq:30,pp:10}],
+  'GRAMA':[{n:'Absorver',p:12,t:'GRAMA',lvlReq:1,pp:25},{n:'Chicote de Cipó',p:18,t:'GRAMA',lvlReq:10,pp:25},{n:'Folha Navalha',p:26,t:'GRAMA',lvlReq:20,pp:20},{n:'Raio Solar',p:45,t:'GRAMA',lvlReq:30,pp:10}],
+  'ELÉTRICO':[{n:'Choque',p:13,t:'ELÉTRICO',lvlReq:1,pp:25},{n:'Faísca',p:20,t:'ELÉTRICO',lvlReq:10,pp:20},{n:'Choque do Trovão',p:30,t:'ELÉTRICO',lvlReq:20,pp:15},{n:'Trovão',p:48,t:'ELÉTRICO',lvlReq:30,pp:10}],
+  'PSÍQUICO':[{n:'Confusão',p:14,t:'PSÍQUICO',lvlReq:1,pp:25},{n:'Pulso Mental',p:22,t:'PSÍQUICO',lvlReq:10,pp:20},{n:'Psíquico',p:35,t:'PSÍQUICO',lvlReq:20,pp:15}],
+  'PEDRA':[{n:'Lançar Pedra',p:14,t:'PEDRA',lvlReq:1,pp:25},{n:'Avalanche',p:24,t:'PEDRA',lvlReq:12,pp:20},{n:'Deslize de Pedras',p:34,t:'PEDRA',lvlReq:24,pp:15}],
+  'LUTADOR':[{n:'Golpe Baixo',p:14,t:'LUTADOR',lvlReq:1,pp:25},{n:'Chute Duplo',p:22,t:'LUTADOR',lvlReq:10,pp:20},{n:'Soco Dinâmico',p:36,t:'LUTADOR',lvlReq:24,pp:15}]
 };
 // fallback pools for remaining types
 ['INSETO','VOADOR','VENENO','TERRA','FANTASMA','GELO','DRAGÃO','FADA','AÇO'].forEach(t=>{
-  if(!POOLS_ATAQUES[t]) POOLS_ATAQUES[t]=[{n:'Investida',p:12,t,lvlReq:1},{n:'Golpe '+t.charAt(0)+t.slice(1).toLowerCase(),p:22,t,lvlReq:10},{n:'Ataque Pesado',p:34,t,lvlReq:22}];
+  if(!POOLS_ATAQUES[t]) POOLS_ATAQUES[t]=[{n:'Investida',p:12,t,lvlReq:1,pp:25},{n:'Golpe '+t.charAt(0)+t.slice(1).toLowerCase(),p:22,t,lvlReq:10,pp:20},{n:'Ataque Pesado',p:34,t,lvlReq:22,pp:15}];
 });
 
 // Type effectiveness (attacker -> {defender:mult})
@@ -391,7 +391,30 @@ function criarInstanciaPokemon(nome,levelAlvo){let base=BASE_POKEMONS[nome], lvl
     get hpMax(){return this.hpBase + Math.round(this.hpBase*((RARIDADE_INFO[this.raridade]||{mult:0.1}).mult*this.level));},
     get ataques(){return ataquesDisponiveis(this.tipo,this.level);}};
   inst.hp=inst.hpMax;
+  // PP atual por ataque (chave = nome do ataque). Inicia cheio.
+  inst.ppAtual={};
+  sincronizarPP(inst);
   return inst;}
+
+// Garante que ppAtual tenha entrada para cada ataque disponível (cheio se novo).
+// Chamado ao criar, ao subir de nível (novos golpes) e ao reidratar do save.
+function sincronizarPP(pkm){
+  if(!pkm.ppAtual) pkm.ppAtual={};
+  let disp=pkm.ataques||[];
+  disp.forEach(a=>{ if(pkm.ppAtual[a.n]===undefined) pkm.ppAtual[a.n]=a.pp; });
+  return pkm.ppAtual;
+}
+// PP máximo de um ataque pelo nome (procura no pool do tipo do pokémon)
+function ppMaxDe(pkm, nomeAtaque){
+  let a=(pkm.ataques||[]).find(x=>x.n===nomeAtaque);
+  return a?a.pp:0;
+}
+// Recarrega todo o PP de um pokémon (ex.: ao curar no centro pokémon / fim de batalha)
+function recarregarPP(pkm){
+  if(!pkm) return;
+  sincronizarPP(pkm);
+  (pkm.ataques||[]).forEach(a=>{ pkm.ppAtual[a.n]=a.pp; });
+}
 
 // Reidrata um pokémon salvo (objeto plano sem getters) recriando a instância e restaurando estado.
 function reidratarPokemon(s){
@@ -399,6 +422,11 @@ function reidratarPokemon(s){
   let p=criarInstanciaPokemon(s.nome, s.level||5);
   if(typeof s.xp==='number') p.xp=s.xp;
   if(typeof s.hp==='number') p.hp=s.hp; else p.hp=p.hpMax;
+  // restaura PP salvo (mantém usos gastos); sincroniza p/ golpes novos
+  sincronizarPP(p);
+  if(s.ppAtual && typeof s.ppAtual==='object'){
+    for(let nm in s.ppAtual){ if(p.ppAtual[nm]!==undefined) p.ppAtual[nm]=s.ppAtual[nm]; }
+  }
   // apelido/itens futuros podem ser copiados aqui
   return p;
 }
@@ -1154,8 +1182,8 @@ function transicaoRegiao(destino, nomeExibir, entrada){
     }
     mapaRegiao=destino;
     player.x=entrada.x; player.y=entrada.y;
-    // reposiciona o companheiro logo atrás do jogador na nova região
-    if(companheiro){ companheiro.x=entrada.x; companheiro.y=entrada.y; companheiro.andandoAte=0; }
+    // reposiciona o companheiro logo atrás do jogador na nova região e limpa a fila
+    if(companheiro){ companheiro.x=entrada.x; companheiro.y=entrada.y; companheiro.andandoAte=0; _filaPassos=[]; }
     atualizarCamera(); desenharMundo(); renderizarJogador();
     if(companheiro) renderizarCompanheiro();
     if(typeof musicaPorRegiao==='function') musicaPorRegiao();
@@ -1715,7 +1743,8 @@ let walkFrame=0; let andandoAte=0;
 
 /* ============ COMPANHEIRO (Pokémon inicial segue o jogador) ============ */
 let companheiro=null; // {nome, x, y, dir, walkFrame, andandoAte}
-let _trilhaJogador=[]; // histórico de posições do jogador (o companheiro segue)
+let _filaPassos=[];   // fila de movimentos pendentes do jogador {x,y,dir,quando}
+const COMP_DELAY=400; // atraso (ms) antes do companheiro repetir cada passo do jogador
 
 function definirCompanheiro(nome){
   carregarMon(nome);
@@ -1726,21 +1755,39 @@ function definirCompanheiro(nome){
   else if(direcaoAtual==='esquerda')dx=1; else dx=-1;
   let cx=player.x+dx, cy=player.y+dy;
   companheiro={nome, x:cx, y:cy, dir:direcaoAtual, walkFrame:0, andandoAte:0};
-  _trilhaJogador=[{x:player.x,y:player.y,dir:direcaoAtual}];
+  _filaPassos=[];
   const el=$('companheiro'); if(el) el.style.display='block';
   renderizarCompanheiro();
 }
-function limparCompanheiro(){ companheiro=null; _trilhaJogador=[]; const el=$('companheiro'); if(el) el.style.display='none'; }
+function limparCompanheiro(){ companheiro=null; _filaPassos=[]; const el=$('companheiro'); if(el) el.style.display='none'; }
 
-// chamado a cada passo válido do jogador: empurra a trilha e move o companheiro p/ a posição anterior
+// Chamado a cada passo válido do jogador: ENFILEIRA a posição que o jogador deixou.
+// O companheiro só vai ocupar essa posição depois de COMP_DELAY (loop _tickCompanheiro).
 function avancarCompanheiro(prevX, prevY, dirMov){
   if(!companheiro) return;
-  // direção que o companheiro encara = direção do movimento dele (de onde estava p/ prevX,prevY)
-  let ndir = (prevX>companheiro.x?'direita': prevX<companheiro.x?'esquerda': prevY>companheiro.y?'baixo': prevY<companheiro.y?'cima': companheiro.dir);
-  companheiro.dir=ndir;
-  companheiro.x=prevX; companheiro.y=prevY;
-  companheiro.walkFrame=(companheiro.walkFrame+1)%4;
-  companheiro.andandoAte=Date.now()+260;
+  _filaPassos.push({x:prevX, y:prevY, dir:dirMov, quando:Date.now()});
+}
+
+// Loop que consome a fila: move o companheiro para os passos já "maduros" (após o delay).
+// Mantém 1 tile de distância — quando o jogador para, o companheiro alcança o último passo e para ao lado.
+function _tickCompanheiro(){
+  if(!companheiro || _filaPassos.length===0) return;
+  let agora=Date.now();
+  let moveu=false;
+  // consome todos os passos cujo tempo já venceu (evita acúmulo se o jogador andou rápido)
+  while(_filaPassos.length>0 && agora-_filaPassos[0].quando >= COMP_DELAY){
+    let passo=_filaPassos.shift();
+    // não pisar em cima do jogador: se o próximo passo é a posição atual do player, segura
+    if(passo.x===player.x && passo.y===player.y){ _filaPassos.unshift(passo); break; }
+    // direção que o companheiro encara = para onde ele está se movendo
+    let ndir=(passo.x>companheiro.x?'direita': passo.x<companheiro.x?'esquerda': passo.y>companheiro.y?'baixo': passo.y<companheiro.y?'cima': companheiro.dir);
+    companheiro.dir=ndir;
+    companheiro.x=passo.x; companheiro.y=passo.y;
+    companheiro.walkFrame=(companheiro.walkFrame+1)%4;
+    companheiro.andandoAte=Date.now()+260;
+    moveu=true;
+  }
+  if(moveu) renderizarCompanheiro();
 }
 
 function desenharSpriteMon(canvas, nome, dir, frame, andando){
@@ -1767,6 +1814,14 @@ function renderizarCompanheiro(){
   el.style.left=(258 + (companheiro.x - player.x)*TILE)+'px';
   el.style.top=(258 + (companheiro.y - player.y)*TILE)+'px';
 }
+// Loop do companheiro: consome a fila de passos com atraso (COMP_DELAY) e
+// reposiciona o sprite junto à câmera mesmo quando o jogador está parado.
+setInterval(()=>{
+  if(!companheiro || !jogoIniciado) return;
+  _tickCompanheiro();
+  // mantém o companheiro alinhado à câmera (o mapa pode ter se movido)
+  renderizarCompanheiro();
+}, 120);
 function estaAndando(){ return Date.now()<andandoAte; }
 
 const NPC_TINT_CACHE={}; // cache de sprites de NPC por direção
@@ -2250,6 +2305,17 @@ function continuarJogo(){
 }
 
 /* ============ INTERACTION ============ */
+function voltarBotaoB(){
+  // Em batalha: volta de submenu (ataques/bolas) para o menu principal
+  if(emBatalha){ if(subMenuAtaques||subMenuBolas) menuPrincipal(); return; }
+  // Fora da batalha: fecha o que estiver aberto
+  if(mostrandoNotificacao){ fecharNotificacao(); return; }
+  if(typeof emLoja!=='undefined' && emLoja){ fecharLoja(); return; }
+  if($('modal-mapa') && $('modal-mapa').style.display==='flex'){ fecharMapa(); return; }
+  if($('modal-custom') && $('modal-custom').style.display==='flex'){ fecharCustom(); return; }
+  if(emParty){ fecharParty(); return; }
+  if(emPokedex){ fecharPokedex(); return; }
+}
 function interagirBotaoE(){
   if(mostrandoNotificacao){fecharNotificacao(); return;}
   if(emBatalha||emParty||emPokedex||emLoja||!jogoIniciado)return;
@@ -2306,7 +2372,7 @@ function coletarBola(idx){
   mostrarAviso(`Você encontrou uma ${TIPOS_BOLA[tipo].icone} ${TIPOS_BOLA[tipo].nome}!`);
 }
 function curarNoPc(){if(equipeAtiva.length===0){mostrarAviso("💻 PC Pokémon:\nSua equipe está vazia."); return;}
-  equipeAtiva.forEach(p=>p.hp=p.hpMax); sfx(660,0.12); setTimeout(()=>sfx(880,0.15),120);
+  equipeAtiva.forEach(p=>{p.hp=p.hpMax; recarregarPP(p);}); sfx(660,0.12); setTimeout(()=>sfx(880,0.15),120);
   mostrarAviso("💻 PC Pokémon:\nSua equipe foi totalmente curada!");}
 function escolherInicial(nome){inicialEscolhido=true; let pkm=criarInstanciaPokemon(nome,5); equipeAtiva.push(pkm); definirCompanheiro(nome);
   registroDex[nome]='capturado'; dinheiro=500; fecharStarterPopup(); desenharMundo(); atualizarChips(); sfx(600,0.1); setTimeout(()=>sfx(800,0.14),120);
@@ -2504,7 +2570,7 @@ function forcarMovimento(letra){
   walkFrame=(walkFrame+1)%_len; andandoAte=Date.now()+260; passoVisual();
   let _prevX=player.x, _prevY=player.y; // posição que o jogador deixa (vira destino do companheiro)
   player.x=px;player.y=py; atualizarCamera(); desenharMundo();
-  if(companheiro){ avancarCompanheiro(_prevX, _prevY, direcaoAtual); renderizarCompanheiro(); }
+  if(companheiro){ avancarCompanheiro(_prevX, _prevY, direcaoAtual); }
   if(bloco===2){ somMato(); }                 // farfalhar ao andar no mato
   musicaPorRegiao();                           // troca trilha se mudou de lado do rio / casa
   if(bloco===2&&Math.random()<0.16){setTimeout(()=>iniciarBatalhaSelvagem(true),140);}
@@ -2640,7 +2706,7 @@ function atualizarHps(){
   bi.style.background=corHp(fi); bj.style.background=corHp(fj);
   $('bar-xp-jogador').style.width=Math.min(100,pkmAtivoJogador.xp/pkmAtivoJogador.xpNecessario*100)+'%';
 }
-function menuPrincipal(){subMenuAtaques=false;
+function menuPrincipal(){subMenuAtaques=false; subMenuBolas=false;
   let bola=batalhaTreinador?`<button class="btn-acao" disabled><span class="atalho">A</span> Bola</button>`
     :`<button class="btn-acao btn-gold" onclick="menuBolas()"><span class="atalho">A</span> Bola</button>`;
   painelBotoes.innerHTML=`<button class="btn-acao" onclick="menuAtaques()"><span class="atalho">Q</span> Lutar</button>
@@ -2648,26 +2714,48 @@ function menuPrincipal(){subMenuAtaques=false;
     ${bola}<button class="btn-acao btn-ghost" onclick="fugirBatalha()"><span class="atalho">S</span> Fugir</button>`;}
 function menuBolas(){
   if(totalBolas()===0){textoBatalha.innerText="Você não tem nenhuma Pokébola! Compre na Pokémart."; return;}
+  subMenuAtaques=false; subMenuBolas=true;
   painelBotoes.innerHTML=''; let at=['Q','W','A','S'];
   let disp=ORDEM_BOLAS.filter(k=>bolsa[k]>0).slice(0,3);
+  _bolasExibidas=disp.slice(); // guarda p/ os atalhos de teclado
   disp.forEach((k,i)=>{let b=TIPOS_BOLA[k]; let btn=document.createElement('button'); btn.className='btn-acao btn-gold btn-mv';
     btn.innerHTML=`<span class="mv-nm"><span class="atalho">${at[i]}</span> ${b.icone} ${b.nome}</span><span class="mv-tp">x${bolsa[k]} · taxa ×${b.mult>900?'∞':b.mult}</span>`;
     btn.onclick=()=>usarPokebola(k); painelBotoes.appendChild(btn);});
-  let volta=document.createElement('button'); volta.className='btn-acao btn-ghost'; volta.innerHTML=`<span class="atalho">S</span> Voltar`;
+  let volta=document.createElement('button'); volta.className='btn-acao btn-ghost'; volta.innerHTML=`<span class="atalho">B</span> Voltar`;
   volta.onclick=menuPrincipal; painelBotoes.appendChild(volta);
 }
-function menuAtaques(){subMenuAtaques=true; painelBotoes.innerHTML=''; let at=['Q','W','A','S'];
+let _bolasExibidas=[];
+function menuAtaques(){subMenuAtaques=true; subMenuBolas=false; painelBotoes.innerHTML=''; let at=['Q','W','A','S'];
+  sincronizarPP(pkmAtivoJogador);
   for(let i=0;i<4;i++){let a=pkmAtivoJogador.ataques[i]; let b=document.createElement('button'); b.className='btn-acao btn-mv btn-tipo';
     if(a){let c=corBotaoTipo(a.t); let ic=ICONE_TIPO[a.t]||'•';
+      let ppA=pkmAtivoJogador.ppAtual[a.n]; if(ppA===undefined)ppA=a.pp;
+      let semPP=ppA<=0;
       b.style.background=c.bg; b.style.color=c.fg; b.style.borderColor='rgba(0,0,0,.25)';
-      b.innerHTML=`<span class="mv-nm"><span class="atalho">${at[i]}</span> <span class="mv-ic">${ic}</span> ${a.n}</span><span class="mv-tp">${a.t} · ${a.p}</span>`;
-      b.onclick=()=>turnoAtaqueJogador(a);}
+      if(semPP) b.style.opacity='0.45';
+      b.innerHTML=`<span class="mv-nm"><span class="atalho">${at[i]}</span> <span class="mv-ic">${ic}</span> ${a.n}</span><span class="mv-tp">${a.t} · ${a.p} · PP ${ppA}/${a.pp}</span>`;
+      if(semPP){ b.disabled=true; b.onclick=()=>{ textoBatalha.innerText=`${a.n} está sem PP!`; }; }
+      else b.onclick=()=>turnoAtaqueJogador(a);}
     else{b.innerHTML='<span class="mv-nm">—</span>'; b.disabled=true;} painelBotoes.appendChild(b);}}
 function tratarAtalhos(letra){let l=letra.toUpperCase();
   if((l===' '||letra===' ')&&esperandoEspaco){window.iniciarBatalhaAgora(); return;}
   if(!turnoPausado||mostrandoNotificacao)return;
-  if(!subMenuAtaques){if(l==='Q')menuAtaques(); else if(l==='W')abrirPartyBatalha(); else if(l==='A'&&!batalhaTreinador)menuBolas(); else if(l==='S')fugirBatalha();}
-  else{let a=pkmAtivoJogador.ataques; if(l==='Q'&&a[0])turnoAtaqueJogador(a[0]); else if(l==='W'&&a[1])turnoAtaqueJogador(a[1]); else if(l==='A'&&a[2])turnoAtaqueJogador(a[2]); else if(l==='S'&&a[3])turnoAtaqueJogador(a[3]);}}
+  // B = voltar ao menu principal a partir de qualquer submenu
+  if(l==='B'){ if(subMenuAtaques||subMenuBolas) menuPrincipal(); return; }
+  if(subMenuAtaques){
+    let a=pkmAtivoJogador.ataques;
+    if(l==='Q'&&a[0])turnoAtaqueJogador(a[0]); else if(l==='W'&&a[1])turnoAtaqueJogador(a[1]);
+    else if(l==='A'&&a[2])turnoAtaqueJogador(a[2]); else if(l==='S'&&a[3])turnoAtaqueJogador(a[3]);
+  } else if(subMenuBolas){
+    // no menu de bolas, Q/W/A selecionam a bola exibida; S volta
+    let idx={'Q':0,'W':1,'A':2}[l];
+    if(idx!==undefined && _bolasExibidas[idx]) usarPokebola(_bolasExibidas[idx]);
+    else if(l==='S') menuPrincipal();
+  } else {
+    // menu principal
+    if(l==='Q')menuAtaques(); else if(l==='W')abrirPartyBatalha();
+    else if(l==='A'&&!batalhaTreinador)menuBolas(); else if(l==='S')fugirBatalha();
+  }}
 
 function flashTipo(cor){let f=$('flash-tipo'); f.style.background=cor; f.classList.remove('flash-on'); void f.offsetWidth; f.classList.add('flash-on');}
 
@@ -2737,6 +2825,14 @@ function calcDano(atacante,defensor,atq){let mult=multiplicadorTipo(atq.t,defens
   let dmg=Math.max(1,Math.round(((atq.p+atacante.ataque)-defensor.defesa)*mult)); return {dmg,mult};}
 
 function turnoAtaqueJogador(atq){
+  // PP: bloqueia se não houver usos restantes
+  sincronizarPP(pkmAtivoJogador);
+  if(pkmAtivoJogador.ppAtual[atq.n]!==undefined && pkmAtivoJogador.ppAtual[atq.n]<=0){
+    textoBatalha.innerText=`${atq.n} está sem PP! Escolha outro golpe.`;
+    return;
+  }
+  // consome 1 PP
+  if(pkmAtivoJogador.ppAtual[atq.n]!==undefined) pkmAtivoJogador.ppAtual[atq.n]--;
   painelBotoes.innerHTML=''; subMenuAtaques=false; turnoPausado=true;
   let {dmg,mult}=calcDano(pkmAtivoJogador,pkmInimigo,atq);
   let hpNovo=Math.max(0,pkmInimigo.hp-dmg);
@@ -2888,7 +2984,7 @@ function fecharBatalha(msg,reset){clearInterval(loopATB); limparFxTimers(); turn
   txtCaptura.style.display='none'; msgCentral.style.display='none'; $('encontro-intro').style.display='none';
   $('fx-inimigo').innerHTML=''; $('fx-jogador').innerHTML='';
   tocarMusicaCenario(); // volta a trilha do mapa
-  if(reset){player={x:8,y:9}; equipeAtiva.forEach(p=>{p.hp=p.hpMax;}); mostrarAviso("Sua equipe desmaiou...\nVocê acordou de volta no laboratório, curado.");}
+  if(reset){player={x:8,y:9}; equipeAtiva.forEach(p=>{p.hp=p.hpMax; recarregarPP(p);}); mostrarAviso("Sua equipe desmaiou...\nVocê acordou de volta no laboratório, curado.");}
   atualizarChips(); desenharMundo();
 }
 /* ============ MENUS ============ */
@@ -3018,6 +3114,7 @@ document.documentElement.addEventListener('keydown',e=>{
   if(e.code==='Space'){e.preventDefault(); iniciarBatalhaSelvagem(false); return;}
   let k=e.key.toLowerCase();
   if(k==='e')interagirBotaoE();
+  else if(k==='b')voltarBotaoB();
   else if(k==='p')alternarParty();
   else if(k==='o')alternarPokedex();
   else if(k==='c')abrirCustom();

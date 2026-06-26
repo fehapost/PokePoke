@@ -32,13 +32,36 @@ function carregarImagem(path, cb){
   const im = new Image();
   _imgCache[path] = im;
   let done=false;
-  const finish=(ok)=>{ if(done) return; done=true; cb && cb(ok? im : _PLACEHOLDER); };
+  const finish=(ok)=>{ if(done) return; done=true; cb && cb(ok? im : _PLACEHOLDER); _notificarSpritePronto(); };
   im.onload = ()=>finish(true);
   im.onerror = ()=>{ console.warn('Sprite faltando:', path); finish(false); };
   // timeout de segurança: se não carregar em 8s, libera com placeholder
   setTimeout(()=>finish(im.naturalWidth>0), 8000);
   im.src = path;
   return im;
+}
+
+// Quando um sprite termina de carregar, reagenda um redesenho do jogo.
+// Isso conserta o caso em que o render acontece ANTES das imagens chegarem
+// (rede com latência, ex.: Vercel) — sem isso, só a sombra aparecia.
+let _redesenhoAgendado=false;
+function _notificarSpritePronto(){
+  if(_redesenhoAgendado) return;
+  _redesenhoAgendado=true;
+  // agrupa várias chegadas num único redesenho no próximo frame
+  const fn=(typeof requestAnimationFrame!=='undefined')? requestAnimationFrame : (f)=>setTimeout(f,16);
+  fn(()=>{
+    _redesenhoAgendado=false;
+    try{
+      // jogoIniciado é 'let' no jogo.js (mesmo escopo global); acessível direto.
+      var ativo = (typeof jogoIniciado!=='undefined' && jogoIniciado);
+      if(ativo){
+        if(typeof desenharMundo==='function') desenharMundo();
+        if(typeof renderizarJogador==='function') renderizarJogador();
+        if(typeof renderizarCompanheiro==='function' && typeof companheiro!=='undefined' && companheiro) renderizarCompanheiro();
+      }
+    }catch(e){ /* render ainda não disponível; ignora */ }
+  });
 }
 
 // Monta a estrutura {baixo:{parado,andar[]}, ...} de um personagem/pokémon a partir de uma pasta base,
@@ -100,4 +123,19 @@ function carregarNPCs(redesenhar){
       if(redesenhar) img.onload = ()=>{ if(typeof desenharMundo==='function' && window.jogoIniciado) desenharMundo(); };
     });
   });
+}
+
+// ----- NPCs ANIMADOS (4 direções × 5 frames) — prontos para ligar o movimento -----
+// Estrutura igual à dos personagens: NPC_ANIM_OBJ[nome][dir] = {parado, andar[]}.
+// Carregados sob demanda via carregarNpcAnim(nome). Hoje os NPCs ainda são
+// desenhados estáticos (POLICIA_IMG/PROF_IMG); estes sprites ficam disponíveis
+// para quando o "andar" for ativado.
+const NPC_ANIM_OBJ = {};
+const _NPC_ANIM_PASTA = { policial:'policial', professor:'professor' };
+function carregarNpcAnim(nome){
+  if(NPC_ANIM_OBJ[nome]) return NPC_ANIM_OBJ[nome];
+  const pasta = _NPC_ANIM_PASTA[nome];
+  if(!pasta) return null;
+  NPC_ANIM_OBJ[nome] = montarSpriteSet(`assets/npcs_animados/${pasta}`,4);
+  return NPC_ANIM_OBJ[nome];
 }
