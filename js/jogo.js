@@ -1822,6 +1822,11 @@ setInterval(()=>{
   // mantém o companheiro alinhado à câmera (o mapa pode ter se movido)
   renderizarCompanheiro();
 }, 120);
+// Rede de segurança do JOGADOR (espelha o loop do companheiro acima): redesenha
+// o sprite parado periodicamente enquanto o jogo está ativo. Sem isto, se o sprite
+// chega DEPOIS do primeiro render (latência de rede na Vercel), o jogador fica
+// invisível parado e só aparece ao andar. renderizarJogador é idempotente.
+setInterval(()=>{ if(jogoIniciado) renderizarJogador(); }, 200);
 function estaAndando(){ return Date.now()<andandoAte; }
 
 const NPC_TINT_CACHE={}; // cache de sprites de NPC por direção
