@@ -11,6 +11,7 @@ let labirintoLimpo=false; // vira true quando o boss do labirinto é derrotado (
 let mostrandoNotificacao=false, callbackNotificacao=null;
 let emBatalha=false, batalhaTreinador=false, subMenuAtaques=false, subMenuBolas=false;
 let emParty=false, emPokedex=false, vindoDeBatalha=false, esperandoEspaco=false, trocaObrigatoria=false;
+let esperandoEspacoDerrota=false; // mensagem de derrota total aguardando [ESPAÇO]
 let jogoIniciado=false;
 let player={x:8,y:10};
 let inicialEscolhido=false, equipeAtiva=[], caixaPC=[];
@@ -179,10 +180,10 @@ function iniciarAudio(){if(audioCtx)return; audioCtx=new (window.AudioContext||w
 const MELODIAS={
   // dentro de casa: tranquila, lenta
   casa:   {notas:[330,392,440,392,330,294,262,294,330,392,330,262,0,294,330,0], tempo:0.357, tipo:'triangle', vol:0.05},
-  // esquerda do rio: aventura LEVE, alegre
-  esq:    {notas:[392,440,494,523,587,523,494,440,392,440,494,392,330,392,440,494], tempo:0.252, tipo:'square', vol:0.06},
-  // direita do rio: aventura INTENSA, mais grave e rápida
-  dir:    {notas:[262,262,311,349,392,349,311,262,247,294,330,392,440,392,330,294], tempo:0.1785, tipo:'sawtooth', vol:0.06},
+  // esquerda do rio: aventura LEVE — mais calma (tempo mais lento, onda suave, volume menor)
+  esq:    {notas:[392,440,494,523,587,523,494,440,392,440,494,392,330,392,440,494], tempo:0.33, tipo:'triangle', vol:0.045},
+  // direita do rio: aventura — mais calma (antes intensa/rápida em sawtooth)
+  dir:    {notas:[262,262,311,349,392,349,311,262,247,294,330,392,440,392,330,294], tempo:0.27, tipo:'triangle', vol:0.045},
   // batalha
   batalha:{notas:[330,330,392,330,294,262,294,330,349,349,440,392,330,294,262,247], tempo:0.168, tipo:'square', vol:0.06},
 };
@@ -252,6 +253,42 @@ function sfx(freq,dur,type){ if(!audioCtx||mutado)return; let o=audioCtx.createO
   o.type=type||'square'; o.frequency.value=freq; g.gain.setValueAtTime(volMestre*0.12,audioCtx.currentTime);
   g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur); o.connect(g); g.connect(audioCtx.destination);
   o.start(); o.stop(audioCtx.currentTime+dur); }
+// ===== Sons de golpe (texturizados por tipo) e "pancada" no impacto =====
+let _golpeJaDado=false; // 1º golpe da batalha pausa a música de encontro
+function pararMusicaBatalha(){ musicaPausada=true; if(loopAudio){clearInterval(loopAudio); loopAudio=null;} }
+// ruído curto filtrado — base para fogo/água/pancada
+function _ruido(dur, filtroTipo, freq, q, vol){
+  if(!audioCtx||mutado)return;
+  let n=Math.floor(audioCtx.sampleRate*dur); let buf=audioCtx.createBuffer(1,n,audioCtx.sampleRate); let dt=buf.getChannelData(0);
+  for(let i=0;i<n;i++) dt[i]=(Math.random()*2-1)*(1-i/n);
+  let src=audioCtx.createBufferSource(); src.buffer=buf;
+  let f=audioCtx.createBiquadFilter(); f.type=filtroTipo; f.frequency.value=freq; if(q)f.Q.value=q;
+  let g=audioCtx.createGain(); g.gain.setValueAtTime(volMestre*vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur);
+  src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(); src.stop(audioCtx.currentTime+dur);
+}
+// som do golpe: textura por tipo, intensidade pela força (1..4)
+function somGolpe(tipo, forca){
+  if(!audioCtx||mutado)return; forca=Math.max(1,Math.min(4,forca||1));
+  let vol=0.10+forca*0.035, dur=0.18+forca*0.05;
+  if(tipo==='FOGO'){ _ruido(dur,'bandpass',1100+forca*200,0.7,vol*1.1); _ruido(dur*0.8,'highpass',2600,0,vol*0.5); }
+  else if(tipo==='ÁGUA'){ _ruido(dur,'lowpass',700+forca*120,0,vol); sfx(220+forca*40,dur*0.7,'sine'); }
+  else if(tipo==='ELÉTRICO'){ for(let i=0;i<forca;i++) setTimeout(()=>sfx(900+Math.random()*700,0.05,'square'),i*45); _ruido(dur*0.6,'highpass',3500,0,vol*0.5); }
+  else if(tipo==='GRAMA'){ _ruido(dur,'bandpass',2200,1.2,vol*0.85); }
+  else if(tipo==='GELO'){ _ruido(dur,'highpass',3000,0,vol*0.7); sfx(1200,dur*0.5,'triangle'); }
+  else { sfx(420+forca*60,dur*0.6,'sawtooth'); }
+}
+// "pancada" ao acertar o Pokémon: thump grave + clique
+function somPancada(forca){
+  if(!audioCtx||mutado)return; forca=Math.max(1,Math.min(4,forca||1));
+  let o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='sine'; o.frequency.setValueAtTime(180,audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(60,audioCtx.currentTime+0.18);
+  g.gain.setValueAtTime(volMestre*(0.16+forca*0.05),audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.22);
+  o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.24);
+  _ruido(0.08,'lowpass',1200,0,0.16+forca*0.04);
+}
 
 /* ============ POKÉMON DATA ============ */
 const DADOS_151=[
@@ -1205,7 +1242,7 @@ setInterval(()=>{
 },2200);
 
 let npcsInternos=[
-  {nome:'PROF',x:8,y:7,cor:'c-branco',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos."},
+  {nome:'PROF',x:8,y:7,cor:'c-branco',spriteCustom:'professor',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos."},
   {nome:'Vendedor',x:43,y:40,cor:'c-azul-r',msg:"Vendedor de Pokémon:\nCompro e vendo Pokémon! As ofertas mudam a cada 5 minutos."},
   {nome:'Vendedor2',x:8,y:41,cor:'c-verde',dir:'cima',msg:"Vendedor:\nPokébolas a bom preço, freguês!"}
 ];
@@ -1247,6 +1284,7 @@ function montarTimeRival(){
     lvl=rivalNivel; // nível fixo (já acumulou os +4 das derrotas/vitórias anteriores)
   }
   rival.nivelAtual=lvl;
+  rival.nome=nomeRival();   // Mike (Luke) ou Jade (Ayla), conforme o personagem escolhido
   // todas as espécies fixas no mesmo nível
   rival.pokemons=rivalEquipe.map(n=>({n, lvl}));
   rival.derrotado=false;
@@ -1878,9 +1916,21 @@ function marcarGenero(){
 let nomeJogador = '';
 let nomeEditadoManual = false;
 const NOMES_PERSONAGEM = {
-  m:'Luke',  l:'Eric',  nb:'Alex', np:'Ethan', pg:'Mike',   // masculinos
-  f:'Ayla',  lf:'Jade', ea:'Serena', ev:'Kaya', es:'Miley'  // femininos
+  m:'Luke',  l:'Mike',  nb:'Alex', np:'Ethan', pg:'Eric',   // masculinos
+  f:'Ayla',  lf:'Jade', ea:'Serena', ev:'Kaya', es:'Nick'   // femininos
 };
+// Rival do jogador: Luke (menino) -> Mike (loiro); Ayla (menina) -> Jade (loira).
+function nomeRival(){ return PLAYER_GENERO==='f' ? 'Jade' : 'Mike'; }
+// conjunto de sprites do rival (loiro p/ Mike, loira p/ Jade)
+function spriteSetRival(){ return PLAYER_GENERO==='f' ? SPRITE_ANIM_OBJ_LF : SPRITE_ANIM_OBJ_L; }
+// true se o jogador ainda tem algum Pokémon vivo
+function temPokemonVivo(){ return equipeAtiva.some(p=>p && p.hp>0); }
+// bloqueia início de batalha/encontro quando todos desmaiaram (avisa e retorna true)
+function bloquearSemPokemon(){
+  if(!inicialEscolhido || temPokemonVivo()) return false;
+  mostrarAviso("Todos os seus Pokémon estão desmaiados!\nLeve-os a um Centro Pokémon (teto vermelho) para curá-los antes de batalhar.");
+  return true;
+}
 // nome efetivo: o digitado, ou o padrão do personagem se vazio
 function nomeEfetivo(){ return (nomeJogador && nomeJogador.trim()) ? nomeJogador.trim() : (NOMES_PERSONAGEM[PLAYER_GENERO]||'Treinador'); }
 // reflete um valor em todos os campos de nome (intro e modal de visual)
@@ -2156,7 +2206,12 @@ function desenharMundo(){
     let el=document.createElement('div'); el.className='item-bola bobbing';
     el.innerHTML=ICONE_BOLA_HTML; el.style.left=(b.x*TILE)+'px'; el.style.top=(b.y*TILE)+'px'; divMapa.appendChild(el);});
 
-  if(playerInHouse)npcsInternos.forEach(n=>{ let lojista=/Vendedor/.test(n.nome); let el=spriteNpcEl(n.cor, n.dir? n.dir : (!lojista && npcVirado)); addChar(n.x,n.y,el); });
+  if(playerInHouse)npcsInternos.forEach(n=>{
+    let el;
+    if(n.spriteCustom==='professor'){ el=charDeImagem(PROF_IMG); }
+    else { let lojista=/Vendedor/.test(n.nome); el=spriteNpcEl(n.cor, n.dir? n.dir : (!lojista && npcVirado)); }
+    addChar(n.x,n.y,el);
+  });
   // Balconista: só aparece quando o jogador está dentro da loja (sem telhado escondendo)
   if(playerInHouse && casaEm(player.x,player.y) && casaEm(player.x,player.y).tipo==='centro') addChar(balconista.x,balconista.y,spriteNpcEl(balconista.cor));
   // Pokémon vagantes e treinadores só desenham se não estiverem sob um telhado oculto
@@ -2186,7 +2241,12 @@ function desenharMundo(){
   // NPCs decorativos de campo (sempre visíveis fora de casa)
   if(!playerInHouse)npcsCampo.forEach(n=>{ if(!personagemVisivel(n.x,n.y,playerInHouse))return;
     let d;
-    if(n.spriteCustom==='policia' || n.spriteCustom==='professor' || n.spriteCustom==='sabio'){
+    if(n.ehRival){
+      // Rival usa o sprite de personagem jogável: loiro (Mike) ou loira (Jade)
+      let set=spriteSetRival(); let img = (set && set.baixo) ? set.baixo.parado : null;
+      d=charDeImagem(img);
+    }
+    else if(n.spriteCustom==='policia' || n.spriteCustom==='professor' || n.spriteCustom==='sabio'){
       let _img = n.spriteCustom==='professor' ? PROF_IMG : (n.spriteCustom==='sabio' ? SABIO_IMG : POLICIA_IMG);
       d=document.createElement('div'); d.className='grid-pixel-char';
       let sh=document.createElement('div'); sh.className='char-shadow'; d.appendChild(sh);
@@ -2237,6 +2297,17 @@ function personagemVisivel(x,y,playerInHouse){
 }
 function addChar(x,y,el,bob){ if(bob)el.classList.add('bobbing');
   el.style.left=(x*TILE)+'px'; el.style.top=(y*TILE)+'px'; divMapa.appendChild(el);}
+// Constrói um personagem desenhando uma Image (frame parado de frente) num canvas 64x64.
+// Usado por NPCs com sprite dedicado (professor) e pelo rival (sprite de personagem jogável).
+function charDeImagem(img, escala){
+  let d=document.createElement('div'); d.className='grid-pixel-char';
+  let sh=document.createElement('div'); sh.className='char-shadow'; d.appendChild(sh);
+  let cv=document.createElement('canvas'); cv.width=64; cv.height=64; d.appendChild(cv);
+  let ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  if(img && img.complete && img.naturalWidth) ctx.drawImage(img,0,0,64,64);
+  if(escala) d.style.transform='scale('+escala+')';
+  return d;
+}
 function atualizarCamera(){divMapa.style.left=(259-player.x*TILE)+'px'; divMapa.style.top=(259-player.y*TILE)+'px';}
 
 // ===== CARROS EM MOVIMENTO (direita -> esquerda, em linha reta) =====
@@ -2387,11 +2458,12 @@ function interagirBotaoE(){
   let npcC=npcsCampo.find(n=>Math.abs(n.x-player.x)<=1&&Math.abs(n.y-player.y)<=1);
   if(npcC && !isInHouse(player.x,player.y)){
     if(npcC.ehRival){
-      if(equipeAtiva.length===0){ mostrarAviso("Rival Théo:\nVá pegar um Pokémon primeiro! Aí a gente batalha."); return; }
+      if(equipeAtiva.length===0){ mostrarAviso("Rival "+nomeRival()+":\nVá pegar um Pokémon primeiro! Aí a gente batalha."); return; }
+      if(bloquearSemPokemon())return;
       montarTimeRival(); desenharMundo();
       let intro = rivalVitoriasJogador===0
-        ? "Rival Théo:\nFinalmente te encontrei! Sou seu maior rival. Vou provar que sou melhor treinador — prepare-se!"
-        : "Rival Théo:\nNos encontramos de novo! Eu treinei muito desde a última vez. Agora estou MUITO mais forte. Você não tem chance!";
+        ? "Rival "+nomeRival()+":\nFinalmente te encontrei! Sou seu maior rival. Vou provar que sou melhor treinador — prepare-se!"
+        : "Rival "+nomeRival()+":\nNos encontramos de novo! Eu treinei muito desde a última vez. Agora estou MUITO mais forte. Você não tem chance!";
       mostrarAviso(intro);
       setTimeout(()=>{ iniciarBatalhaTreinador(npcC); }, 1100); return;
     }
@@ -2688,6 +2760,7 @@ function sortearSelvagem(levelRef){
 }
 function iniciarBatalhaSelvagem(automatica=false){
   if(!inicialEscolhido)return;
+  if(bloquearSemPokemon())return;
   if(!automatica&&MAPA[player.y][player.x]!==2){mostrarAviso("Ande pelo mato alto verde para encontrar Pokémon."); return;}
   emBatalha=true; subMenuAtaques=false; batalhaTreinador=false;
   pkmAtivoJogador=equipeAtiva.find(p=>p.hp>0)||equipeAtiva[0];
@@ -2699,6 +2772,7 @@ function iniciarBatalhaSelvagem(automatica=false){
 }
 function iniciarBatalhaFixo(pf){
   if(!inicialEscolhido){ mostrarAviso("Escolha primeiro um Pokémon inicial."); return; }
+  if(bloquearSemPokemon())return;
   emBatalha=true; subMenuAtaques=false; batalhaTreinador=false;
   pokemonFixoAtual=pf;
   pkmAtivoJogador=equipeAtiva.find(p=>p.hp>0)||equipeAtiva[0];
@@ -2708,13 +2782,14 @@ function iniciarBatalhaFixo(pf){
 }
 let pokemonFixoAtual=null;
 function iniciarBatalhaTreinador(t){
+  if(bloquearSemPokemon())return;
   emBatalha=true; subMenuAtaques=false; batalhaTreinador=true; treinadorAtual=t; indexInimigoEquipe=0;
   pkmInimigo=criarInstanciaPokemon(t.pokemons[0].n,t.pokemons[0].lvl); pkmAtivoJogador=equipeAtiva.find(p=>p.hp>0)||equipeAtiva[0];
   if(registroDex[pkmInimigo.nome]==='oculto')registroDex[pkmInimigo.nome]='visto';
   gatilhoBatalha(()=>{montarArena(); textoBatalha.innerText=`${t.nome} quer batalhar!`; iniciarLoopATB();});
 }
 function iniciarLoopATB(){
-  clearInterval(loopATB); limparFxTimers(); atbJogador=0; atbInimigo=0; turnoPausado=false; atualizarHps(); painelBotoes.innerHTML='';
+  clearInterval(loopATB); limparFxTimers(); atbJogador=0; atbInimigo=0; turnoPausado=false; _golpeJaDado=false; atualizarHps(); painelBotoes.innerHTML='';
   loopATB=setInterval(()=>{
     if(emBatalha&&!turnoPausado&&!mostrandoNotificacao&&!esperandoEspaco){
       atbJogador+=pkmAtivoJogador.velocidade*0.12; atbInimigo+=pkmInimigo.velocidade*0.12;
@@ -2934,8 +3009,10 @@ function turnoAtaqueJogador(atq){
   painelBotoes.innerHTML=''; subMenuAtaques=false; turnoPausado=true;
   let {dmg,mult}=calcDano(pkmAtivoJogador,pkmInimigo,atq);
   let hpNovo=Math.max(0,pkmInimigo.hp-dmg);
-  sfx(520,0.08,'sawtooth');
-  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-inimigo', forcaAtaque(atq));   // efeito escala com a força
+  let _f=forcaAtaque(atq);
+  if(!_golpeJaDado){ _golpeJaDado=true; pararMusicaBatalha(); }   // 1º golpe encerra a música de encontro
+  somGolpe(atq.t,_f); let sp=setTimeout(()=>somPancada(_f),150); fxTimers.push(sp);   // som do tipo + pancada no impacto
+  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-inimigo', _f);   // efeito escala com a força
   $('img-inimigo').classList.add('dano-anim'); let da=setTimeout(()=>$('img-inimigo').classList.remove('dano-anim'),420); fxTimers.push(da);
   let efe=mult>1?' Foi super eficaz!':mult<1?' Não foi muito eficaz...':'';
   textoBatalha.innerText=`${pkmAtivoJogador.nome} usou ${atq.n}! ${dmg} de dano.${efe}`;
@@ -2953,8 +3030,10 @@ function turnoInimigo(){
   let atq=pkmInimigo.ataques[Math.floor(Math.random()*pkmInimigo.ataques.length)];
   let {dmg,mult}=calcDano(pkmInimigo,pkmAtivoJogador,atq);
   let hpNovo=Math.max(0,pkmAtivoJogador.hp-dmg);
-  sfx(300,0.08,'sawtooth');
-  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-jogador', forcaAtaque(atq));
+  let _f=forcaAtaque(atq);
+  if(!_golpeJaDado){ _golpeJaDado=true; pararMusicaBatalha(); }
+  somGolpe(atq.t,_f); let sp=setTimeout(()=>somPancada(_f),150); fxTimers.push(sp);
+  flashTipo(CORES_TIPO[atq.t]); efeitoAtaque(atq.t,'fx-jogador', _f);
   $('img-jogador').classList.add('dano-anim'); let da=setTimeout(()=>$('img-jogador').classList.remove('dano-anim'),420); fxTimers.push(da);
   let efe=mult>1?' Eficaz!':mult<1?' Resistiu.':'';
   textoBatalha.innerText=`${pkmInimigo.nome} usou ${atq.n}!${efe}`;
@@ -2967,12 +3046,11 @@ function turnoInimigo(){
             textoBatalha.innerText=`${pkmAtivoJogador.nome} desmaiou! Escolha o próximo Pokémon.`;
             trocaObrigatoria=true; abrirPartyBatalha();
           } else {
-            if(batalhaTreinador && treinadorAtual && treinadorAtual.ehRival){
-              // jogador perdeu: rival mantém o MESMO time (espécies e nível), só muda de lugar
-              treinadorAtual.derrotado=false; reposicionarRival();
-              fecharBatalha("Sua equipe foi derrotada!",true);
-              setTimeout(()=>mostrarAviso("Rival Théo:\nHahaha! Eu avisei. Vou treinar com os mesmos parceiros e te encontro por aí. Da próxima não pega leve!"),300);
-            } else fecharBatalha("Sua equipe foi derrotada!",true);
+            // TODOS desmaiaram: sem cura/teleporte automático — vai ao Centro Pokémon.
+            let ehRival = batalhaTreinador && treinadorAtual && treinadorAtual.ehRival;
+            if(ehRival){ treinadorAtual.derrotado=false; reposicionarRival(); }
+            fecharBatalha(null,false);
+            derrotaTotal(ehRival);
           }
         },800); fxTimers.push(f);
       } else turnoPausado=false;
@@ -3014,7 +3092,7 @@ function fimCicloInimigo(){clearInterval(loopATB); let xp=pkmInimigo.level*10;
         receberXp(xp,false,treinadorAtual.premio,treinadorAtual.nome);
         let faltam = Math.min(RIVAL_MAX, Math.max(1,equipeAtiva.length)) - rivalEquipe.length;
         let extra = rivalEquipe.length>=RIVAL_MAX ? "\nMeu time já está completo com 5 Pokémon!" : "";
-        setTimeout(()=>mostrarAviso("Rival Théo:\nGrrr... você levou dessa vez! Da próxima eu volto mais forte — e com mais um parceiro!"+extra),300);
+        setTimeout(()=>mostrarAviso("Rival "+nomeRival()+":\nGrrr... você levou dessa vez! Da próxima eu volto mais forte — e com mais um parceiro!"+extra),300);
       } else { treinadorAtual.derrotado=true; receberXp(xp,treinadorAtual.lider,treinadorAtual.premio,treinadorAtual.nome);
         if(treinadorAtual.bossLabirinto){ labirintoLimpo=true; setTimeout(()=>{ desenharMundo(); mostrarAviso("As luzes do labirinto se acendem! O caminho está livre."); },300); }
       }
@@ -3082,8 +3160,17 @@ function fecharBatalha(msg,reset){clearInterval(loopATB); limparFxTimers(); turn
   txtCaptura.style.display='none'; msgCentral.style.display='none'; $('encontro-intro').style.display='none';
   $('fx-inimigo').innerHTML=''; $('fx-jogador').innerHTML='';
   tocarMusicaCenario(); // volta a trilha do mapa
-  if(reset){player={x:8,y:9}; equipeAtiva.forEach(p=>{p.hp=p.hpMax; recarregarPP(p);}); mostrarAviso("Sua equipe desmaiou...\nVocê acordou de volta no laboratório, curado.");}
+  // (reset legado de cura/teleporte removido: a derrota total agora exige ir ao Centro Pokémon — ver derrotaTotal)
   atualizarChips(); desenharMundo();
+}
+// Derrota total: mostra a mensagem (fechável com [ESPAÇO]). Não cura nem teleporta.
+// Enquanto não houver Pokémon vivo, encontros/batalhas ficam bloqueados (ver bloquearSemPokemon).
+function derrotaTotal(ehRival){
+  esperandoEspacoDerrota=true;
+  mostrarAviso("Todos os seus Pokémon foram derrotados!\nLeve-os a um Centro Pokémon (teto vermelho) para curá-los.\n\n[ESPAÇO] para continuar", ()=>{
+    esperandoEspacoDerrota=false;
+    if(ehRival) setTimeout(()=>mostrarAviso("Rival "+nomeRival()+":\nHahaha! Eu avisei. Vou treinar com os mesmos parceiros e te encontro por aí. Da próxima não pega leve!"),300);
+  });
 }
 /* ============ MENUS ============ */
 function alternarParty(){if(mostrandoNotificacao||!jogoIniciado)return; if(trocaObrigatoria)return; if(emParty)fecharParty(); else{vindoDeBatalha=false; abrirParty();}}
@@ -3197,6 +3284,8 @@ function fecharPokedex(){divPokedex.style.display='none'; emPokedex=false;}
 const teclasMov=new Set();
 document.documentElement.addEventListener('keydown',e=>{
   if(!jogoIniciado)return;
+  // Mensagem de derrota total: só [ESPAÇO] (fecha o aviso)
+  if(esperandoEspacoDerrota){ if(e.code==='Space'){e.preventDefault(); fecharNotificacao();} return; }
   // Durante o alerta de encontro só ESPAÇO funciona
   if(esperandoEspaco){ if(e.code==='Space'){e.preventDefault(); window.iniciarBatalhaAgora();} return; }
   // Pop-up de inicial: atalhos Q W E R
