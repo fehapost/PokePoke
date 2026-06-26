@@ -59,6 +59,11 @@ function _notificarSpritePronto(){
         if(typeof desenharMundo==='function') desenharMundo();
         if(typeof renderizarJogador==='function') renderizarJogador();
         if(typeof renderizarCompanheiro==='function' && typeof companheiro!=='undefined' && companheiro) renderizarCompanheiro();
+      } else {
+        // ainda na intro: redesenha a prévia do personagem quando o sprite chega
+        // (conserta o caso do avatar padrão aparecer em branco antes do PNG carregar)
+        if(typeof atualizarPreviewIntro==='function') atualizarPreviewIntro();
+        if(typeof atualizarPreview==='function') atualizarPreview();
       }
     }catch(e){ /* render ainda não disponível; ignora */ }
   });

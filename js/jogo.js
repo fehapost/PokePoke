@@ -57,6 +57,7 @@ function salvarJogo(){
       inicialEscolhido, equipeAtiva, caixaPC, dinheiro, registroDex, bolsa, bolaSelecionada,
       palette: PLAYER_PALETTE,
       genero: PLAYER_GENERO,
+      nome: nomeEfetivo(),
       labirintoLimpo,
       treinadores: listaTreinadores.map(t=>({id:t.id, derrotado:t.derrotado})),
       fixos: pokemonsFixos.map(p=>({nome:p.nome, x:p.x, y:p.y, lvl:p.lvl, derrotado:p.derrotado, tiles:p.tiles, emoji:p.emoji, aleatorio:p.aleatorio})),
@@ -101,6 +102,7 @@ function carregarJogo(){
     if(typeof d.labirintoLimpo==='boolean') labirintoLimpo=d.labirintoLimpo;
     if(d.palette){ Object.assign(PLAYER_PALETTE, d.palette); }
     if(d.genero){ PLAYER_GENERO = (d.genero==='f'?'f':(d.genero==='l'?'l':(d.genero==='lf'?'lf':(d.genero==='nb'?'nb':(d.genero==='np'?'np':(d.genero==='ea'?'ea':(d.genero==='ev'?'ev':(d.genero==='es'?'es':(d.genero==='pg'?'pg':'m'))))))))); }
+    if(typeof d.nome==='string' && d.nome.trim()){ nomeJogador=d.nome.trim(); nomeEditadoManual=true; _setCamposNome(nomeJogador); }
     if(typeof d.rivalNivel!=='undefined') rivalNivel=d.rivalNivel;
     if(typeof d.rivalVitorias==='number') rivalVitoriasJogador=d.rivalVitorias;
     if(Array.isArray(d.rivalEquipe)) rivalEquipe=d.rivalEquipe;
@@ -1846,6 +1848,7 @@ function aplicarIntercalacaoLateral(){
 }
 function spriteSetAtual(){ return PLAYER_GENERO==='f' ? SPRITE_ANIM_OBJ_F : (PLAYER_GENERO==='l' ? SPRITE_ANIM_OBJ_L : (PLAYER_GENERO==='lf' ? SPRITE_ANIM_OBJ_LF : (PLAYER_GENERO==='nb' ? SPRITE_ANIM_OBJ_NB : (PLAYER_GENERO==='np' ? SPRITE_ANIM_OBJ_NP : (PLAYER_GENERO==='ea' ? SPRITE_ANIM_OBJ_EA : (PLAYER_GENERO==='ev' ? SPRITE_ANIM_OBJ_EV : (PLAYER_GENERO==='es' ? SPRITE_ANIM_OBJ_ES : (PLAYER_GENERO==='pg' ? SPRITE_ANIM_OBJ_PG : SPRITE_ANIM_OBJ)))))))); }
 function definirGenero(g){ PLAYER_GENERO = (g==='f'?'f':(g==='l'?'l':(g==='lf'?'lf':(g==='nb'?'nb':(g==='np'?'np':(g==='ea'?'ea':(g==='ev'?'ev':(g==='es'?'es':(g==='pg'?'pg':'m')))))))));
+  _autoPreencherNome();
   if(typeof renderizarJogador==='function') renderizarJogador();
   if(typeof atualizarPreview==='function') atualizarPreview();
   if(typeof atualizarPreviewIntro==='function') atualizarPreviewIntro();
@@ -1868,6 +1871,24 @@ function marcarGenero(){
     if(bpg) bpg.style.borderColor = PLAYER_GENERO==='pg' ? 'var(--accent)' : 'var(--line)';
   });
 }
+
+// ---- Nome do treinador (definido pelo jogador na intro) ----
+// Cada personagem tem um nome-padrão (sugestão). O jogador pode digitar o seu;
+// nesse caso `nomeEditadoManual` trava o auto-preenchimento ao trocar de avatar.
+let nomeJogador = '';
+let nomeEditadoManual = false;
+const NOMES_PERSONAGEM = {
+  m:'Luke',  l:'Eric',  nb:'Alex', np:'Ethan', pg:'Mike',   // masculinos
+  f:'Ayla',  lf:'Jade', ea:'Serena', ev:'Kaya', es:'Miley'  // femininos
+};
+// nome efetivo: o digitado, ou o padrão do personagem se vazio
+function nomeEfetivo(){ return (nomeJogador && nomeJogador.trim()) ? nomeJogador.trim() : (NOMES_PERSONAGEM[PLAYER_GENERO]||'Treinador'); }
+// reflete um valor em todos os campos de nome (intro e modal de visual)
+function _setCamposNome(v){ ['nome-jogador-intro','nome-jogador-custom'].forEach(id=>{ const el=document.getElementById(id); if(el && el.value!==v) el.value=v; }); }
+// preenche o nome com o padrão do personagem atual, a menos que o jogador já tenha digitado o seu
+function _autoPreencherNome(){ if(nomeEditadoManual) return; nomeJogador = NOMES_PERSONAGEM[PLAYER_GENERO]||''; _setCamposNome(nomeJogador); }
+// handler dos inputs de nome: registra edição manual e propaga
+function aoEditarNome(v){ nomeEditadoManual = (String(v).trim().length>0); nomeJogador = v; _setCamposNome(v); }
 
 // (Sprites de Policial/Professor/Sábio carregados via sprites.js)
 
@@ -2007,7 +2028,7 @@ function construirSwatches(containerId){
   // Customização de cor removida (sprites são de cor fixa). Mantém o container vazio.
   const cont=$(containerId); if(!cont)return; cont.innerHTML='';
 }
-function montarCustomizacao(){ construirSwatches('custom-grupos'); construirSwatches('intro-custom'); marcarGenero(); atualizarPreviewIntro(); }
+function montarCustomizacao(){ construirSwatches('custom-grupos'); construirSwatches('intro-custom'); marcarGenero(); _autoPreencherNome(); atualizarPreviewIntro(); }
 function marcarSelecao(linha,sw){ [...linha.children].forEach(c=>c.style.borderColor='var(--line)'); sw.style.borderColor='var(--accent)'; }
 function atualizarPreview(){ const cv=$('cv-preview'); if(!cv)return; desenharSpriteCanvas(cv, previewDir, 0, PLAYER_PALETTE, previewDir==='direita'); }
 function atualizarPreviewIntro(){ const cv=$('cv-intro'); if(!cv)return; desenharSpriteCanvas(cv, introDir, 0, PLAYER_PALETTE, introDir==='direita'); }
@@ -2298,8 +2319,13 @@ Há treinadores espalhados pelas trilhas, Pokébolas perdidas no chão, uma Pok�
 A jornada para completar a Pokédex começa agora.`;
 
 function montarIntro(){ $('story-text').innerText=STORY; }
-function comecarJornada(){ $('intro').style.display='none'; jogoIniciado=true; iniciarAudio();
-  mostrarAviso("Prof. Cedro:\nVá até a mesa e use [E] em uma das três Pokébolas para escolher seu parceiro!"); }
+function comecarJornada(){
+  // garante que o nome digitado (ou o padrão do personagem) seja capturado
+  const campo=document.getElementById('nome-jogador-intro');
+  if(campo && campo.value.trim()){ nomeJogador=campo.value.trim(); nomeEditadoManual=true; }
+  else if(!nomeJogador) nomeJogador=NOMES_PERSONAGEM[PLAYER_GENERO]||'';
+  $('intro').style.display='none'; jogoIniciado=true; iniciarAudio();
+  mostrarAviso("Prof. Cedro:\n"+nomeEfetivo()+", vá até a mesa e use [E] em uma das três Pokébolas para escolher seu parceiro!"); }
 function continuarJogo(){
   if(!carregarJogo()){ mostrarAviso("Nenhum jogo salvo encontrado."); return; }
   $('intro').style.display='none'; jogoIniciado=true; iniciarAudio();
