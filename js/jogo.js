@@ -1,6 +1,6 @@
 
 /* ============ STATE ============ */
-const TILE=25, LARGURA_MAPA=67, ALTURA_MAPA=48;
+const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
 // NPCs (exceto lojistas) viram de lado a cada 15s
@@ -957,6 +957,8 @@ function cercadoMato(ox,oy,larg,alt){
   ['R27','R29'].forEach(c=>set(c,87));   // cerca policial (interdição)
   set('T47',13);                          // remove a ponte (vira água)
   ['U47','V47'].forEach(c=>set(c,84));    // ponte quebrada
+  // setas no chão (B19/B20) que levam à área a OESTE
+  ['B19','B20'].forEach(c=>set(c,88));
 
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
@@ -1278,6 +1280,43 @@ function _restaurarRegiao(s){
 }
 
 // Gera a REGIÃO 2 ("Rota Norte"): grama aberta, trilhas, manchas de mato e portal de volta.
+// Região OESTE: mapa pequeno (jogável só até col AJ=36 e linha 40; resto bloqueado).
+function _gerarMapaOeste(){
+  const COLMAX=36, ROWMAX=40;
+  for(let r=0;r<ALTURA_MAPA;r++)for(let c=0;c<LARGURA_MAPA;c++){
+    if(c>COLMAX || r>ROWMAX) MAPA[r][c]=1;                          // fora da área menor = sólido
+    else MAPA[r][c]=(r===0||c===0||r===ROWMAX||c===COLMAX)?1:0;     // borda + grama
+  }
+  CASAS.length=0; fachadaExterna.clear();
+  npcsInternos.length=0; bolasNoChao.length=0;
+  if(typeof carros!=='undefined') carros.length=0;
+  pokemonsFixos.length=0; listaTreinadores.length=0; npcsCampo.length=0;
+  // moldura de árvores logo dentro da borda da área
+  for(let c=1;c<COLMAX;c++){ MAPA[1][c]=12; MAPA[ROWMAX-1][c]=12; }
+  for(let r=1;r<ROWMAX;r++){ MAPA[r][1]=12; MAPA[r][COLMAX-1]=12; }
+  // trilha de terra no meio
+  let rmid=Math.floor(ROWMAX/2);
+  for(let c=2;c<COLMAX-1;c++){ MAPA[rmid][c]=32; }
+  // manchas de mato alto (encontros)
+  [[6,6,8,5],[20,9,8,6],[10,26,10,6],[24,28,8,5]].forEach(([x0,y0,w,h])=>{
+    for(let r=y0;r<y0+h;r++)for(let c=x0;c<x0+w;c++){ if(MAPA[r]?.[c]===0) MAPA[r][c]=2; }
+  });
+  // árvores decorativas
+  [[8,14],[16,20],[28,12],[12,32],[22,24]].forEach(([c,r])=>{ if(MAPA[r]?.[c]===0) MAPA[r][c]=12; });
+  // seta de VOLTA para a cidade (borda direita, na altura da entrada)
+  MAPA[19][COLMAX-1]=89;
+  MAPA[19][COLMAX-2]=0;  // garante grama andável antes da seta
+  // NPC de boas-vindas
+  npcsCampo.push({nome:'Andarilho',x:30,y:19,cor:'c-verde',dir:'esquerda',msg:"Andarilho:\nEsta é a clareira a oeste. Use a seta ➡️ para voltar à cidade."});
+  // semeia selvagens no mato (níveis médios)
+  (function(){ let nomes=Object.keys(BASE_POKEMONS); if(!nomes.length)return;
+    let matos=[]; for(let r=0;r<ALTURA_MAPA;r++)for(let c=0;c<LARGURA_MAPA;c++) if(MAPA[r][c]===2) matos.push([c,r]);
+    for(let i=matos.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[matos[i],matos[j]]=[matos[j],matos[i]];}
+    let qtd=Math.min(10,matos.length);
+    for(let k=0;k<qtd;k++){let [c,r]=matos[k]; let nm=nomes[Math.floor(Math.random()*nomes.length)]; let lvl=10+Math.floor(Math.random()*15);
+      pokemonsFixos.push({nome:nm,x:c,y:r,lvl,derrotado:false,aleatorio:true}); }
+  })();
+}
 function _gerarRotaNorte(){
   // limpa tudo que é da cidade
   for(let r=0;r<ALTURA_MAPA;r++)for(let c=0;c<LARGURA_MAPA;c++){
@@ -1334,7 +1373,9 @@ function _gerarRotaNorte(){
 
 const ENTRADAS={
   cidade: {x:64, y:46},   // ao voltar da rota, reaparece ao lado da saída
-  rota:   {x:3,  y:ALTURA_MAPA-3} // ao chegar na rota, ao lado do portal de volta
+  rota:   {x:3,  y:ALTURA_MAPA-3}, // ao chegar na rota, ao lado do portal de volta
+  oeste:  {x:34, y:19},   // ao chegar na área oeste, perto da saída (borda direita)
+  cidadeOeste: {x:2, y:19} // ao voltar da área oeste, ao lado das setas (B19/B20)
 };
 
 let _emTransicao=false;
@@ -1351,6 +1392,9 @@ function transicaoRegiao(destino, nomeExibir, entrada){
     if(destino==='rota'){
       if(_estadoRegioes['rota']) _restaurarRegiao(_estadoRegioes['rota']);
       else _gerarRotaNorte();
+    } else if(destino==='oeste'){
+      if(_estadoRegioes['oeste']) _restaurarRegiao(_estadoRegioes['oeste']);
+      else _gerarMapaOeste();
     } else {
       if(_estadoRegioes['cidade']) _restaurarRegiao(_estadoRegioes['cidade']);
     }
@@ -1995,8 +2039,8 @@ function renderizarCompanheiro(){
   desenharSpriteMon(cv, companheiro.nome, companheiro.dir, companheiro.walkFrame, andando);
   // o #player é fixo no centro (258,258) e o mapa se move; posiciona o companheiro
   // relativo ao jogador, pelo deslocamento em tiles.
-  el.style.left=(258 + (companheiro.x - player.x)*TILE)+'px';
-  el.style.top=(258 + (companheiro.y - player.y)*TILE)+'px';
+  el.style.left=(255 + (companheiro.x - player.x)*TILE)+'px';
+  el.style.top=(255 + (companheiro.y - player.y)*TILE)+'px';
 }
 // Loop do companheiro: consome a fila de passos com atraso (COMP_DELAY) e
 // reposiciona o sprite junto à câmera mesmo quando o jogador está parado.
@@ -2321,6 +2365,8 @@ function desenharMundo(){
       else if(v===85){tile.classList.add('piso-cinza','bau'); tile.innerText='🎁';}        // baú (com recompensa)
       else if(v===86){tile.classList.add('piso-cinza','bau-aberto'); tile.innerText='📭';} // baú aberto
       else if(v===87){tile.classList.add('cerca-policial'); tile.style.overflow='visible';} // cerca policial (interdição)
+      else if(v===88){tile.classList.add('seta-mapa'); tile.innerText='⬅️';}                 // seta: leva à área a oeste
+      else if(v===89){tile.classList.add('seta-mapa'); tile.innerText='➡️';}                 // seta: volta para a cidade
       else if(v===17){tile.classList.add('mesa'); tile.innerText='🛒'; tile.style.fontSize='12px';}
       else if(v===19){tile.classList.add('prateleira');}
       else if(v===40)tile.classList.add('piso-quarto');
@@ -2473,7 +2519,7 @@ function charDeImagem(img, escala){
   if(escala) d.style.transform='scale('+escala+')';
   return d;
 }
-function atualizarCamera(){divMapa.style.left=(258-player.x*TILE)+'px'; divMapa.style.top=(258-player.y*TILE)+'px';}
+function atualizarCamera(){divMapa.style.left=(255-player.x*TILE)+'px'; divMapa.style.top=(255-player.y*TILE)+'px';}
 
 // ===== CARROS EM MOVIMENTO (direita -> esquerda, em linha reta) =====
 // Faixas de tráfego: linhas de asfalto longe do centro da ponte. x em tiles (float).
@@ -2844,6 +2890,11 @@ function forcarMovimento(letra){
     transicaoRegiao('rota','Rota Norte', ENTRADAS.rota); return; }
   if(bloco===73){ player.x=px; player.y=py; desenharMundo(); renderizarJogador();
     transicaoRegiao('cidade','Cidade', ENTRADAS.cidade); return; }
+  // Setas no chão: 88 leva à área OESTE; 89 volta à cidade (ao lado das setas)
+  if(bloco===88){ player.x=px; player.y=py; desenharMundo(); renderizarJogador();
+    transicaoRegiao('oeste','Área Oeste', ENTRADAS.oeste); return; }
+  if(bloco===89){ player.x=px; player.y=py; desenharMundo(); renderizarJogador();
+    transicaoRegiao('cidade','Cidade', ENTRADAS.cidadeOeste); return; }
   // Pokémon selvagem fixo no caminho: bloqueia e inicia batalha
   let pf=pokemonsFixos.find(p=>!p.derrotado && (p.tiles? p.tiles.some(t=>t[0]===px&&t[1]===py) : (p.x===px&&p.y===py)));
   if(pf){ iniciarBatalhaFixo(pf); return; }
@@ -3522,7 +3573,7 @@ document.documentElement.addEventListener('keydown',e=>{
   let k=e.key.toLowerCase();
   if(k==='e')interagirBotaoE();
   else if(k==='b')voltarBotaoB();
-  else if(k==='p')alternarParty();
+  else if(k==='q')alternarParty();
   else if(k==='o')alternarPokedex();
   else if(k==='c')abrirCustom();
   else if(['w','a','s','d'].includes(k)){ teclasMov.add(k); forcarMovimento(k); }

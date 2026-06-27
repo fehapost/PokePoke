@@ -6,9 +6,9 @@
 <title>NOVA REGION — Pokémon Engine</title>
 <meta name="description" content="Explore Nova Region, capture Pokémon e enfrente Ginásios neste jogo HTML5.">
 <!-- Favicon / ícone -->
-<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=14">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=14">
-<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=14">
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=15">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=15">
+<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=15">
 <!-- Compartilhamento (WhatsApp / Open Graph) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NOVA REGION — Pokémon Engine">
@@ -17,27 +17,34 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/estilo.css?v=14">
+<link rel="stylesheet" href="css/estilo.css?v=15">
 </head>
 <body>
 <div class="app">
   <div class="game-row">
    <!-- Controls (left column) -->
    <div id="controles">
+    <!-- Botões de ação estilo controle (E/B + cluster Q O C M + Música) -->
+    <div class="vg-acoes">
+      <div class="vg-ab">
+        <div class="vg-btn"><button class="btn-circ act" onclick="interagirBotaoE()">E</button><span>Ação</span></div>
+        <div class="vg-btn"><button class="btn-circ back" onclick="voltarBotaoB()">B</button><span>Voltar</span></div>
+      </div>
+      <div class="vg-cluster">
+        <div class="vg-btn"><button class="btn-circ gold" onclick="alternarParty()">Q</button><span>Time</span></div>
+        <div class="vg-btn"><button class="btn-circ red" onclick="alternarPokedex()">O</button><span>Dex</span></div>
+        <div class="vg-btn"><button class="btn-circ vis" onclick="abrirCustom()">C</button><span>Visual</span></div>
+        <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
+      </div>
+      <div class="vg-btn"><button class="btn-circ music" onclick="alternarConfig()">🎵</button><span>Música</span></div>
+    </div>
+    <!-- D-pad (mais embaixo) -->
     <div class="d-pad">
       <div></div><button class="btn-dir" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button><div></div>
       <button class="btn-dir" ontouchstart="forcarMovimento('a')" onclick="forcarMovimento('a')">←</button>
       <button class="btn-dir center" onclick="interagirBotaoE()">E</button>
       <button class="btn-dir" ontouchstart="forcarMovimento('d')" onclick="forcarMovimento('d')">→</button>
       <div></div><button class="btn-dir" ontouchstart="forcarMovimento('s')" onclick="forcarMovimento('s')">↓</button><div></div>
-    </div>
-    <div class="botoes-acao">
-      <div class="acao-linha"><span class="acao-lbl">Ação <b>E</b></span><button class="btn-circ act" onclick="interagirBotaoE()">E</button></div>
-      <div class="acao-linha"><span class="acao-lbl">Voltar <b>B</b></span><button class="btn-circ back" onclick="voltarBotaoB()">B</button></div>
-      <div class="acao-linha"><span class="acao-lbl">Time <b>P</b></span><button class="btn-circ gold" onclick="alternarParty()">P</button></div>
-      <div class="acao-linha"><span class="acao-lbl">Dex <b>O</b></span><button class="btn-circ red" onclick="alternarPokedex()">O</button></div>
-      <div class="acao-linha"><span class="acao-lbl">Visual <b>C</b></span><button class="btn-circ vis" onclick="abrirCustom()">C</button></div>
-      <div class="acao-linha"><span class="acao-lbl">Música</span><button class="btn-circ music" onclick="alternarConfig()" title="Música">🎵</button></div>
     </div>
    </div>
    <div id="viewport">
@@ -306,7 +313,7 @@
   </div>
 </div>
 
-<script src="js/sprites.js?v=14"></script>
-<script src="js/jogo.js?v=14"></script>
+<script src="js/sprites.js?v=15"></script>
+<script src="js/jogo.js?v=15"></script>
 </body>
 </html>

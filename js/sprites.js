@@ -124,8 +124,11 @@ const SABIO_IMG = new Image();
 function carregarNPCs(redesenhar){
   [['policial',POLICIA_IMG],['professor',PROF_IMG],['sabio',SABIO_IMG]].forEach(([nome,img])=>{
     carregarImagem(`assets/npcs/${nome}.png`, im=>{
+      // onload ANTES de setar o src (evita perder o evento se a imagem vier do cache)
+      img.onload = ()=>{ _notificarSpritePronto(); };
       img.src = im.src;
-      if(redesenhar) img.onload = ()=>{ if(typeof desenharMundo==='function' && window.jogoIniciado) desenharMundo(); };
+      // se já estiver pronta, agenda o redesenho na hora (professor aparece sem precisar andar)
+      if(img.complete && img.naturalWidth) _notificarSpritePronto();
     });
   });
 }
