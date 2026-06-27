@@ -373,8 +373,8 @@ body{
   margin-bottom:-2px; transform:scaleY(0.9); transform-origin:bottom center} /* -15% largura, -10% altura */
 #player{z-index:99; top:258px; left:258px}
 #companheiro{z-index:98; top:258px; left:258px}
-.andando{animation:passo .22s ease-in-out}
-@keyframes passo{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.andando{animation:passo .18s ease-in-out}
+@keyframes passo{0%,100%{transform:translateY(0)}50%{transform:translateY(-0.8px)}}
 .bobbing{animation:bob 1s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
 /* shadow under chars */
@@ -547,9 +547,9 @@ body{
   text-shadow:0 2px 0 #c79a1f, 0 0 12px rgba(0,0,0,.5); display:none}
 #pokebola-animada{position:absolute; width:30px; height:30px; image-rendering:pixelated; display:none; z-index:110}
 @keyframes lancamento{
-  0%  {left:70px;  top:230px; transform:scale(.9) rotate(0)}
-  55% {left:230px; top:60px;  transform:scale(1.3) rotate(360deg)}
-  100%{left:300px; top:110px; transform:scale(1) rotate(540deg)}}
+  0%  {left:70px;  top:235px; transform:scale(.9) rotate(0)}
+  55% {left:320px; top:48px;  transform:scale(1.3) rotate(360deg)}
+  100%{left:412px; top:92px;  transform:scale(1) rotate(540deg)}}
 .voo-bola{animation:lancamento .8s forwards ease-out; display:block !important}
 /* Ao tomar dano: pisca a imagem rapidamente (só opacidade/brilho, preserva transform/scale) */
 .dano-anim{animation:piscarDano .4s linear}

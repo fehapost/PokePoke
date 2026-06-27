@@ -875,6 +875,17 @@ function cercadoMato(ox,oy,larg,alt){
   // árvores em P6..P9
   ['P6','P7','P8','P9'].forEach(c=>set(c,12));
 
+  // ---- LOTE 5: ajustes pedidos ao redor do laboratório ----
+  // remover troncos soltos -> grama
+  ['J13','K13','L13','M13','N13','O13','J4','O14',
+   'J17','J18','K18','L18','M18','N18','O18',
+   'H13','H14','G13','F13',
+   'H17','H18','G18','F18','E18'].forEach(c=>set(c,GRAMA));
+  // cor da fachada da frente do laboratório (row 11): mesma cor da parede frontal (N12 = FACHADA).
+  // Cantos D11/N11 sólidos (FACHADA); miolo andável por dentro, fachada por fora (FACHADA_PISO).
+  ['D11','N11'].forEach(c=>set(c,FACHADA));
+  ['E11','F11','H11','I11','J11','L11','M11'].forEach(c=>set(c,FACHADA_PISO));
+
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
   // prateleiras viradas 180° em F44..L44
@@ -1242,7 +1253,7 @@ setInterval(()=>{
 },2200);
 
 let npcsInternos=[
-  {nome:'PROF',x:8,y:7,cor:'c-branco',spriteCustom:'professor',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos."},
+  {nome:'PROF',x:8,y:7,cor:'c-branco',spriteCustom:'professor',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos.\n\nIMPORTANTE: quando seus Pokémon ficarem feridos ou desmaiarem, vá ao CENTRO POKÉMON (a casa de teto vermelho) e use [E] no computador de cura para recuperar TODA a equipe de graça. Se todos desmaiarem, você não poderá batalhar até curá-los lá!"},
   {nome:'Vendedor',x:43,y:40,cor:'c-azul-r',msg:"Vendedor de Pokémon:\nCompro e vendo Pokémon! As ofertas mudam a cada 5 minutos."},
   {nome:'Vendedor2',x:8,y:41,cor:'c-verde',dir:'cima',msg:"Vendedor:\nPokébolas a bom preço, freguês!"}
 ];
