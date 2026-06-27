@@ -1,6 +1,6 @@
 
 /* ============ STATE ============ */
-const TILE=24, LARGURA_MAPA=67, ALTURA_MAPA=48;
+const TILE=25, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
 // NPCs (exceto lojistas) viram de lado a cada 15s
@@ -12,6 +12,7 @@ let mostrandoNotificacao=false, callbackNotificacao=null;
 let emBatalha=false, batalhaTreinador=false, subMenuAtaques=false, subMenuBolas=false;
 let emParty=false, emPokedex=false, vindoDeBatalha=false, esperandoEspaco=false, trocaObrigatoria=false;
 let esperandoEspacoDerrota=false; // mensagem de derrota total aguardando [ESPAÇO]
+let emCutscene=false; // trava input do jogador durante cenas (ex.: rival se aproximando)
 let jogoIniciado=false;
 let player={x:8,y:10};
 let inicialEscolhido=false, equipeAtiva=[], caixaPC=[];
@@ -31,8 +32,17 @@ const TIPOS_BOLA={
 const ORDEM_BOLAS=['poke','great','ultra','premier','master'];
 // sorteia o tipo de uma pokébola do chão (mesma distribuição da coleta)
 function sortearTipoBola(){ let r=Math.random(); return r<0.55?'poke': r<0.82?'great': r<0.95?'ultra': r<0.99?'premier':'master'; }
-// mini-pokébola desenhada em CSS com a cor do tipo (metade de cima colorida)
-function bolaColoridaHTML(cor){ return '<span class="bola-cor" style="--bcor:'+cor+'"></span>'; }
+// URL da pokébola padrão (mesma imagem de sempre) + filtro de cor por tipo
+const POKEBALL_PNG='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+const FILTRO_BOLA={
+  poke:'none',
+  great:'hue-rotate(205deg) saturate(1.5)',
+  ultra:'hue-rotate(70deg) saturate(1.7) brightness(1.12)',
+  premier:'grayscale(1) brightness(1.55) contrast(.92)',
+  master:'hue-rotate(262deg) saturate(1.5)'
+};
+// mesma pokébola de sempre, só recolorida por tipo (filtro CSS)
+function bolaColoridaHTML(tipo){ return '<img src="'+POKEBALL_PNG+'" alt="bola" style="filter:'+(FILTRO_BOLA[tipo]||'none')+'">'; }
 let bolsa={poke:5, great:0, ultra:0, premier:0, master:0};
 let bolaSelecionada='poke';
 
@@ -912,6 +922,8 @@ function cercadoMato(ox,oy,larg,alt){
   set('BK33',75); set('BK35',75);   // cadeiras acima/abaixo da mesa
   // fecha o buraco na parede esquerda (BH32/BH33 estavam como estrada) — só a porta BH34 abre
   ['BH32','BH33'].forEach(c=>set(c,4));
+  // árvore grande em AA6, AA7, Z7
+  ['AA6','AA7','Z7'].forEach(c=>set(c,20));
 
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
@@ -2306,7 +2318,7 @@ function desenharMundo(){
   bolasNoChao.forEach(b=>{ if(!personagemVisivel(b.x,b.y,playerInHouse))return;
     if(!b.tipo) b.tipo=sortearTipoBola();   // cada bola tem a sua cor (persiste no save)
     let el=document.createElement('div'); el.className='item-bola bobbing';
-    el.innerHTML=bolaColoridaHTML(TIPOS_BOLA[b.tipo].cor); el.style.left=(b.x*TILE)+'px'; el.style.top=(b.y*TILE)+'px'; divMapa.appendChild(el);});
+    el.innerHTML=bolaColoridaHTML(b.tipo); el.style.left=(b.x*TILE)+'px'; el.style.top=(b.y*TILE)+'px'; divMapa.appendChild(el);});
 
   if(playerInHouse)npcsInternos.forEach(n=>{
     let el;
@@ -2537,7 +2549,7 @@ function tileFrente(){
 }
 function interagirBotaoE(){
   if(mostrandoNotificacao){fecharNotificacao(); return;}
-  if(emBatalha||emParty||emPokedex||emLoja||!jogoIniciado)return;
+  if(emBatalha||emParty||emPokedex||emLoja||!jogoIniciado||emCutscene)return;
   // SÓ interage com o tile/entidade PARA ONDE o jogador está virado
   const F=tileFrente(); const fx=F.x, fy=F.y;
   const naFrente=(x,y)=> x===fx && y===fy;
@@ -2750,7 +2762,7 @@ function venderPokemon(idx){
 /* ============ MOVEMENT ============ */
 const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75];
 function forcarMovimento(letra){
-  if(!jogoIniciado||mostrandoNotificacao||emLoja)return;
+  if(!jogoIniciado||mostrandoNotificacao||emLoja||emCutscene)return;
   let agora=Date.now(); if(agora-ultimoPasso<INTERVALO)return; ultimoPasso=agora;
   if(emBatalha||emParty||emPokedex||esperandoEspaco)return;
   let px=player.x,py=player.y;
@@ -2804,18 +2816,23 @@ function passoVisual(){const p=$('player'); p.classList.remove('andando'); void 
 // anda 2 passos em direção a ele e chama para a batalha.
 function rivalSeAproxima(){
   let rival=npcsCampo.find(n=>n.ehRival); if(!rival || !inicialEscolhido) return;
-  rival.x=player.x; rival.y=Math.min(ALTURA_MAPA-2, player.y+3); rival.dir='cima';
+  emCutscene=true;                 // trava o jogador (fica parado esperando)
+  teclasMov.clear();               // descarta qualquer tecla "presa"
+  rival.x=player.x; rival.y=Math.min(ALTURA_MAPA-2, player.y+4); rival.dir='cima';
   desenharMundo();
-  let passos=2;
-  let it=setInterval(()=>{
-    if(rival.y>player.y+1){ rival.y--; desenharMundo(); }
-    if(--passos<=0){
-      clearInterval(it);
-      montarTimeRival(); desenharMundo();
-      mostrarAviso("Rival "+nomeRival()+":\nEspera aí! Vi que você pegou seu primeiro Pokémon. Vamos ver agora mesmo quem é o melhor treinador — vem pra cima!");
-      setTimeout(()=>{ let r=npcsCampo.find(n=>n.ehRival); if(r && !bloquearSemPokemon()) iniciarBatalhaTreinador(r); }, 1300);
-    }
-  }, 350);
+  // 1) espera 1 segundo com o jogador parado, depois o rival vem andando devagar
+  setTimeout(()=>{
+    let it=setInterval(()=>{
+      if(rival.y>player.y+1){ rival.y--; desenharMundo(); }
+      else{
+        clearInterval(it);
+        emCutscene=false;
+        montarTimeRival(); desenharMundo();
+        mostrarAviso("Rival "+nomeRival()+":\nEspera aí! Vi que você pegou seu primeiro Pokémon. Vamos ver agora mesmo quem é o melhor treinador — vem pra cima!");
+        setTimeout(()=>{ let r=npcsCampo.find(n=>n.ehRival); if(r && !bloquearSemPokemon()) iniciarBatalhaTreinador(r); }, 1300);
+      }
+    }, 480);                       // mais devagar (era 350)
+  }, 1000);
 }
 
 /* ============ BATTLE ============ */

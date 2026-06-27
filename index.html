@@ -6,9 +6,9 @@
 <title>NOVA REGION — Pokémon Engine</title>
 <meta name="description" content="Explore Nova Region, capture Pokémon e enfrente Ginásios neste jogo HTML5.">
 <!-- Favicon / ícone -->
-<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=10">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=10">
-<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=10">
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=11">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=11">
+<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=11">
 <!-- Compartilhamento (WhatsApp / Open Graph) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NOVA REGION — Pokémon Engine">
@@ -17,7 +17,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/estilo.css?v=10">
+<link rel="stylesheet" href="css/estilo.css?v=11">
 </head>
 <body>
 <div class="app">
@@ -37,7 +37,7 @@
       <div class="acao-linha"><span class="acao-lbl">Time <b>P</b></span><button class="btn-circ gold" onclick="alternarParty()">P</button></div>
       <div class="acao-linha"><span class="acao-lbl">Dex <b>O</b></span><button class="btn-circ red" onclick="alternarPokedex()">O</button></div>
       <div class="acao-linha"><span class="acao-lbl">Visual <b>C</b></span><button class="btn-circ vis" onclick="abrirCustom()">C</button></div>
-      <div class="acao-linha"><span class="acao-lbl">Salvar</span><button class="btn-circ save" onclick="salvarJogo()">💾</button></div>
+      <div class="acao-linha"><span class="acao-lbl">Salvar · Música</span><button class="btn-circ save" onclick="salvarJogo()" title="Salvar">💾</button><button class="btn-circ music" onclick="alternarConfig()" title="Música">🎵</button></div>
     </div>
    </div>
    <div id="viewport">
@@ -169,8 +169,8 @@
 <!-- Config modal -->
 <div id="modal-configuracoes" class="modal">
   <div class="sheet">
-    <h3>Opções</h3>
-    <p>Trilha sonora chiptune gerada em tempo real.</p>
+    <h3>🎵 Música</h3>
+    <p>Trilha sonora chiptune gerada em tempo real. Ajuste o volume ou mute.</p>
     <div class="field">
       <label>Volume — <span id="vol-txt">50%</span></label>
       <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="mudarVolume(this.value)">
@@ -306,7 +306,7 @@
   </div>
 </div>
 
-<script src="js/sprites.js?v=10"></script>
-<script src="js/jogo.js?v=10"></script>
+<script src="js/sprites.js?v=11"></script>
+<script src="js/jogo.js?v=11"></script>
 </body>
 </html>
