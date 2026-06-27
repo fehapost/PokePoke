@@ -931,6 +931,19 @@ function cercadoMato(ox,oy,larg,alt){
   linha('BD46','BN46',24);                   // plataforma (calçada)
   linha('BD47','BN47',81); set('BI47',80);   // vagões + porta de embarque (c60)
 
+  // ---- LOTE 7: ajustes pedidos ----
+  linha('AP47','AV47',83);          // árvores marrons
+  linha('AD45','AG45',ARV);         // árvores
+  ['T15','T16','T19','T20'].forEach(c=>set(c,84));  // ponte quebrada
+  linha('R21','V21',ARV);           // árvores
+  linha('B4','B10',ARV);            // árvores (coluna B)
+  ['R4','R5'].forEach(c=>set(c,ARV));
+  // diminuir faixa de pedestre (volta a asfalto)
+  ['AT23','AT24','AT25','AT26','AS23','AS24','AS25','AS26',
+   'J23','J24','J25','J26','BN23','BN24','BN25','BN26'].forEach(c=>set(c,25));
+  linha('AX36','AX41',ARV);         // árvores
+  set('AY41',85);                   // baú (dinheiro + 2 pokébolas)
+
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
   // prateleiras viradas 180° em F44..L44
@@ -1073,14 +1086,13 @@ function cercadoMato(ox,oy,larg,alt){
 
   // ====== FAIXAS DE PEDESTRE horizontais (brancas) + bloqueio da rua ======
   const FAIXA_H=68;
-  // troca faixas verticais por horizontais: travessia oeste cols 7-9 (H-J) rows 22-25
-  for(let r=22;r<=25;r++) for(let c=7;c<=9;c++){ if(MAPA[r]?.[c]!==undefined) MAPA[r][c]=FAIXA_H; }
-  // travessia leste cols 42-45 (AQ-AT) rows 22-25
-  for(let r=22;r<=25;r++) for(let c=42;c<=45;c++){ if(MAPA[r]?.[c]!==undefined) MAPA[r][c]=FAIXA_H; }
+  // faixa OESTE encolhida: cols 7-8 (H-I) — removida a coluna J(9), rows 22-25
+  for(let r=22;r<=25;r++) for(let c=7;c<=8;c++){ if(MAPA[r]?.[c]!==undefined) MAPA[r][c]=FAIXA_H; }
+  // faixa LESTE encolhida: cols 42-43 (AQ-AR) — removidas AS(44)/AT(45), rows 22-25
+  for(let r=22;r<=25;r++) for(let c=42;c<=43;c++){ if(MAPA[r]?.[c]!==undefined) MAPA[r][c]=FAIXA_H; }
   // qualquer faixa vertical (31) restante na avenida -> asfalto sólido (25)
   for(let r=22;r<=25;r++) for(let c=0;c<LARGURA_MAPA;c++){ if(MAPA[r]?.[c]===31) MAPA[r][c]=25; }
-  // faixa de pedestre horizontal em BN (col 65), rows 22-25
-  for(let r=22;r<=25;r++){ if(MAPA[r]?.[65]!==undefined) MAPA[r][65]=68; }
+  // (faixa de BN removida a pedido — cols J/AS/AT/BN deixam de ter faixa)
 
   // ====== LOTE NOVO ======
   // bloco de pedras Y10..AB13 (cols 24..27, rows 9..12)
@@ -2283,6 +2295,10 @@ function desenharMundo(){
       else if(v===80){tile.classList.add('trem-porta'); tile.innerText='🚪';}   // porta do trem (embarque)
       else if(v===81){tile.classList.add('trem-carro'); tile.innerText='🚃';}   // vagão do trem
       else if(v===82){tile.classList.add('cerca');}                            // cercado da estação
+      else if(v===83){tile.classList.add('piso-cinza','arvore-marrom'); tile.style.overflow='visible'; tile.innerText='🌳';} // árvore marrom
+      else if(v===84){tile.classList.add('agua','ponte-quebrada'); tile.innerText='🪵';}  // ponte quebrada
+      else if(v===85){tile.classList.add('piso-cinza','bau'); tile.innerText='🎁';}        // baú (com recompensa)
+      else if(v===86){tile.classList.add('piso-cinza','bau-aberto'); tile.innerText='📭';} // baú aberto
       else if(v===17){tile.classList.add('mesa'); tile.innerText='🛒'; tile.style.fontSize='12px';}
       else if(v===19){tile.classList.add('prateleira');}
       else if(v===40)tile.classList.add('piso-quarto');
@@ -2613,6 +2629,15 @@ function interagirBotaoE(){
     mostrarAviso("🚂 Estação de Trem:\nO trem parte para a próxima cidade!", ()=>transicaoRegiao('rota','Próxima Cidade',ENTRADAS.rota));
     return;
   }
+  // Baú à frente: dá dinheiro + 2 Pokébolas e fica aberto
+  if(tf===85){
+    let ganho=300+Math.floor(Math.random()*201); dinheiro+=ganho;
+    bolsa.great=(bolsa.great||0)+2;
+    MAPA[fy][fx]=86; atualizarChips(); desenharMundo();
+    sfx(700,0.1); setTimeout(()=>sfx(950,0.12),100);
+    mostrarAviso("🎁 Você abriu um baú!\nEncontrou ₽"+ganho+" e 2 Great Balls 🔵!");
+    return;
+  }
 }
 function coletarBola(idx){
   let tipo = bolasNoChao[idx].tipo || sortearTipoBola();   // pega o tipo (cor) da bola coletada
@@ -2778,7 +2803,7 @@ function venderPokemon(idx){
 }
 
 /* ============ MOVEMENT ============ */
-const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82];
+const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82,83,84,85];
 function forcarMovimento(letra){
   if(!jogoIniciado||mostrandoNotificacao||emLoja||emCutscene)return;
   let agora=Date.now(); if(agora-ultimoPasso<INTERVALO)return; ultimoPasso=agora;

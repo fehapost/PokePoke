@@ -72,10 +72,10 @@ body{
 .fora-limite{background:#070a12}
 .fora-oculto{background:#05070d}
 .pkm-fixo{position:absolute; width:25px; height:25px; display:flex; align-items:center; justify-content:center; z-index:30; filter:drop-shadow(0 3px 2px rgba(0,0,0,.5)); overflow:visible}
-.pkm-fixo img{transform:scale(2.5,2.25); transform-origin:bottom center; animation:pkmFlutua 2.4s ease-in-out infinite}
+.pkm-fixo img{transform:scale(2.25,2.025); transform-origin:bottom center; animation:pkmFlutua 2.4s ease-in-out infinite} /* −10% */
 .pkm-fixo-2{width:25px; height:50px}
-.pkm-fixo-2 img{transform:scale(2.5,2.25); transform-origin:bottom center}
-@keyframes pkmFlutua{0%,100%{transform:scale(2.5,2.25) translateY(0)}50%{transform:scale(2.5,2.25) translateY(-1.5px)}}
+.pkm-fixo-2 img{transform:scale(2.25,2.025); transform-origin:bottom center}
+@keyframes pkmFlutua{0%,100%{transform:scale(2.25,2.025) translateY(0)}50%{transform:scale(2.25,2.025) translateY(-1.5px)}}
 .nevoa-labirinto{background:#04060a !important; background-image:none !important; box-shadow:none !important}
 .nevoa-labirinto::before, .nevoa-labirinto::after{display:none !important}
 .clareado{filter:brightness(1.25)}
@@ -370,6 +370,16 @@ body{
 .agua{background:#2f7df0;
   background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.22) 0 3px, transparent 3px 11px);
   animation:fluir 2.4s linear infinite; border-top:1px solid #5fa0ff}
+/* árvore marrom (outono/seca) */
+.arvore-marrom{filter:sepia(.9) saturate(2.2) hue-rotate(-18deg) brightness(.9)}
+/* ponte quebrada (água com tábuas soltas) */
+.ponte-quebrada{position:relative}
+.ponte-quebrada{background:#2f7df0;
+  background-image:linear-gradient(90deg, transparent 0 20%, #9c6b3f 20% 35%, transparent 35% 62%, #7a4f2c 62% 78%, transparent 78%);
+  font-size:11px; filter:brightness(.95)}
+/* baú */
+.bau{font-size:15px; filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.bau-aberto{font-size:14px; opacity:.85}
 /* peças triangulares grama/água (river edge) */
 .gw-tl{background:linear-gradient(to bottom right, #5fb35f 0 49%, #2f7df0 51%)}
 .gw-tr{background:linear-gradient(to bottom left,  #5fb35f 0 49%, #2f7df0 51%)}
@@ -393,6 +403,8 @@ body{
   margin-bottom:-2px; transform:scaleY(0.9); transform-origin:bottom center} /* -15% largura, -10% altura */
 #player{z-index:99; top:258px; left:258px}
 #companheiro{z-index:98; top:258px; left:258px}
+/* Pokémon que segue o jogador: −15% (sobre o scaleY(0.9) base) */
+#companheiro canvas{transform:scale(0.85, 0.765); transform-origin:bottom center}
 /* Folhas ao vento (efeito ao falar com os NPCs do cabelo): direita -> esquerda */
 .folha-vento{position:absolute; z-index:55; pointer-events:none; will-change:transform,opacity;
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.3)); animation:folhaVento 2.2s ease-in forwards}
