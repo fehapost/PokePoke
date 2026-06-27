@@ -370,6 +370,17 @@ body{
 .agua{background:#2f7df0;
   background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.22) 0 3px, transparent 3px 11px);
   animation:fluir 2.4s linear infinite; border-top:1px solid #5fa0ff}
+/* peças triangulares grama/água (river edge) */
+.gw-tl{background:linear-gradient(to bottom right, #5fb35f 0 49%, #2f7df0 51%)}
+.gw-tr{background:linear-gradient(to bottom left,  #5fb35f 0 49%, #2f7df0 51%)}
+.gw-bl{background:linear-gradient(to top right,    #5fb35f 0 49%, #2f7df0 51%)}
+.gw-br{background:linear-gradient(to top left,     #5fb35f 0 49%, #2f7df0 51%)}
+/* estação de trem */
+.cerca{background:repeating-linear-gradient(90deg,#6e5740 0 3px, transparent 3px 10px), #caa15a;
+  border-top:3px solid #6e5740; border-bottom:3px solid #6e5740}
+.trem-carro{background:linear-gradient(180deg,#5b6680,#39425c); border:1px solid #222a3d;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.25); font-size:15px}
+.trem-porta{background:linear-gradient(180deg,#dfe4ee,#aab3c6); border:1px solid #222a3d; font-size:15px}
 .ponte{background:#9c6b3f;
   background-image:repeating-linear-gradient(90deg,#7a5230 0 2px, #a8754a 2px 11px);
   border-top:2px solid #5e3d20; border-bottom:2px solid #5e3d20}

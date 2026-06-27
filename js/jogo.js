@@ -924,6 +924,12 @@ function cercadoMato(ox,oy,larg,alt){
   ['BH32','BH33'].forEach(c=>set(c,4));
   // árvore grande em AA6, AA7, Z7
   ['AA6','AA7','Z7'].forEach(c=>set(c,20));
+  // peças triangulares grama/água no rio (orientação conforme o lado da água)
+  set('W5',77); set('W8',79); set('V10',79); set('S9',76);
+  // estação de trem (BD45..BN47): cercado em cima (gap de entrada), plataforma, trem embaixo
+  linha('BD45','BN45',82); set('BI45',0);   // cercado + entrada (c60)
+  linha('BD46','BN46',24);                   // plataforma (calçada)
+  linha('BD47','BN47',81); set('BI47',80);   // vagões + porta de embarque (c60)
 
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
@@ -2270,6 +2276,13 @@ function desenharMundo(){
       else if(v===16){tile.classList.add('piso-cinza','placa'); tile.innerText='🪧';}
       else if(v===74){tile.classList.add('piso-cinza','caixa-correio'); tile.innerText='📫';}
       else if(v===75){tile.classList.add('chao-casa','cadeira'); tile.innerText='🪑';}
+      else if(v===76){tile.classList.add('gw','gw-tl');}   // triângulo grama/água
+      else if(v===77){tile.classList.add('gw','gw-tr');}
+      else if(v===78){tile.classList.add('gw','gw-bl');}
+      else if(v===79){tile.classList.add('gw','gw-br');}
+      else if(v===80){tile.classList.add('trem-porta'); tile.innerText='🚪';}   // porta do trem (embarque)
+      else if(v===81){tile.classList.add('trem-carro'); tile.innerText='🚃';}   // vagão do trem
+      else if(v===82){tile.classList.add('cerca');}                            // cercado da estação
       else if(v===17){tile.classList.add('mesa'); tile.innerText='🛒'; tile.style.fontSize='12px';}
       else if(v===19){tile.classList.add('prateleira');}
       else if(v===40)tile.classList.add('piso-quarto');
@@ -2356,9 +2369,9 @@ function desenharMundo(){
   if(!playerInHouse)npcsCampo.forEach(n=>{ if(!personagemVisivel(n.x,n.y,playerInHouse))return;
     let d;
     if(n.ehRival){
-      // Rival usa o sprite de personagem jogável: loiro (Mike) ou loira (Jade)
-      let set=spriteSetRival(); let img = (set && set.baixo) ? set.baixo.parado : null;
-      d=charDeImagem(img);
+      // Rival usa o sprite de personagem jogável (loiro/loira), no frame da direção que anda
+      let set=spriteSetRival(); let sl=(set && set[n.dir||'baixo'])||(set&&set.baixo);
+      d=charDeImagem(sl ? sl.parado : null);
     }
     else if(n.spriteCustom==='policia' || n.spriteCustom==='professor' || n.spriteCustom==='sabio'){
       let _img = n.spriteCustom==='professor' ? PROF_IMG : (n.spriteCustom==='sabio' ? SABIO_IMG : POLICIA_IMG);
@@ -2595,6 +2608,11 @@ function interagirBotaoE(){
   }
   // PC de cura à frente
   if(tf===7||tf===55){curarNoPc(); return;}
+  // Trem à frente (porta 80 ou vagão 81): embarca e viaja para a próxima cidade
+  if(tf===80||tf===81){
+    mostrarAviso("🚂 Estação de Trem:\nO trem parte para a próxima cidade!", ()=>transicaoRegiao('rota','Próxima Cidade',ENTRADAS.rota));
+    return;
+  }
 }
 function coletarBola(idx){
   let tipo = bolasNoChao[idx].tipo || sortearTipoBola();   // pega o tipo (cor) da bola coletada
@@ -2760,7 +2778,7 @@ function venderPokemon(idx){
 }
 
 /* ============ MOVEMENT ============ */
-const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75];
+const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82];
 function forcarMovimento(letra){
   if(!jogoIniciado||mostrandoNotificacao||emLoja||emCutscene)return;
   let agora=Date.now(); if(agora-ultimoPasso<INTERVALO)return; ultimoPasso=agora;
@@ -2950,7 +2968,7 @@ function triggerTurnoJogador(){turnoPausado=true; atbJogador=0; textoBatalha.inn
 
 function corHp(frac){return frac>0.5?'var(--green)':frac>0.2?'var(--warn)':'var(--red)';}
 function tiposHtml(p){return pillTipo(p.tipo)+(p.tipo2?' '+pillTipo(p.tipo2):'');}
-function statsHtml(p){return `⚡ Vel <b>${p.statVel}</b> · 🛡 Def <b>${p.statDef}</b> · ⚔ Atq <b>${p.statAtk}</b>`;}
+function statsHtml(p){return `<b style="color:#ffce4d">⚡ Vel ${p.statVel}</b> · <b style="color:#3a6bff">🛡 Def ${p.statDef}</b> · <b style="color:#ff3b4e">⚔ Atq ${p.statAtk}</b>`;}
 function estilizarHud(hudEl, p){
   let ri=rarInfo(p.raridade);
   hudEl.style.borderColor=ri.borda;
@@ -3382,18 +3400,19 @@ function verStatsPokemon(p){
     <div style="font-size:12px;color:var(--muted)">XP ${p.xp}/${p.xpNecessario}</div>`;
   // tabela de stats: base, multiplicador, fórmula e valor atual
   let m=info.mult;
-  function linha(rotulo,base,atual){
-    return `<tr><td>${rotulo}</td><td>${base}</td><td>×${m} · Lv${p.level}</td><td>${base} × (${m}×${p.level}) + ${base}</td><td style="text-align:right;font-weight:800;color:var(--ink)">${atual}</td></tr>`;
+  // cores por atributo: Ataque vermelho, Defesa azul, Velocidade amarelo, Vida verde
+  function linha(rotulo,base,atual,cor){
+    return `<tr><td style="color:${cor};font-weight:800">${rotulo}</td><td>${base}</td><td>×${m} · Lv${p.level}</td><td>${base} × (${m}×${p.level}) + ${base}</td><td style="text-align:right;font-weight:800;color:${cor}">${atual}</td></tr>`;
   }
   $('pkm-stats').innerHTML=`
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Multiplicador de raridade: <b style="color:${info.cor}">×${m}</b> · Nível mínimo p/ aparecer: <b>${info.minLevel}</b></div>
     <table class="stat-table">
       <thead><tr><th>Atributo</th><th>Base</th><th>Mult</th><th>Fórmula</th><th style="text-align:right">Atual</th></tr></thead>
       <tbody>
-        ${linha('⚔ Ataque', p.baseAtk, p.statAtk)}
-        ${linha('🛡 Defesa', p.baseDef, p.statDef)}
-        ${linha('⚡ Velocidade', p.baseVel, p.statVel)}
-        <tr><td>❤ Vida</td><td>${p.hpBase}</td><td>×${m} · Lv${p.level}</td><td>${p.hpBase} × (${m}×${p.level}) + ${p.hpBase}</td><td style="text-align:right;font-weight:800;color:var(--ink)">${p.hpMax}</td></tr>
+        ${linha('⚔ Ataque', p.baseAtk, p.statAtk, '#ff3b4e')}
+        ${linha('🛡 Defesa', p.baseDef, p.statDef, '#3a6bff')}
+        ${linha('⚡ Velocidade', p.baseVel, p.statVel, '#ffce4d')}
+        ${linha('❤ Vida', p.hpBase, p.hpMax, '#2bb673')}
       </tbody>
     </table>`;
   $('modal-pkm').style.display='flex';
@@ -3417,6 +3436,9 @@ function alternarPokedex(){
     else{r.innerHTML=`<div class="meta-l"><img class="dex-thumb" src="${base.sprite}"><div><div class="nm">Nº${base.id} ${k} ${tiposP}</div><div class="sub"><span style="color:${rar.cor};font-weight:700">${rar.nome}</span> · ${statsLine}</div></div></div>
       <button id="dex-btn-${k}" class="btn-acao btn-ghost" style="height:34px; padding:0 12px;">P/ Time</button>`;}
     listaPokedex.appendChild(r);
+    // clicar no Pokémon (visto/capturado) abre os stats coloridos
+    if(estado!=='oculto'){ let ml=r.querySelector('.meta-l'); if(ml){ ml.style.cursor='pointer';
+      ml.onclick=()=>{ let inst = equipeAtiva.find(p=>p.nome===k) || caixaPC.find(p=>p.nome===k) || criarInstanciaPokemon(k,5); verStatsPokemon(inst); }; } }
     if(estado==='capturado'){$(`dex-btn-${k}`).onclick=()=>{
       if(equipeAtiva.some(p=>p.nome===k)){mostrarAviso(`${k} já está na equipe.`); return;}
       if(equipeAtiva.length>=6){let rem=equipeAtiva.pop(); caixaPC.push(rem); mostrarAviso(`${rem.nome} foi para o PC.\n${k} entrou na equipe!`);}
