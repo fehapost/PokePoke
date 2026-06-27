@@ -1919,10 +1919,16 @@ const NOMES_PERSONAGEM = {
   m:'Luke',  l:'Mike',  nb:'Alex', np:'Ethan', pg:'Eric',   // masculinos
   f:'Ayla',  lf:'Jade', ea:'Serena', ev:'Kaya', es:'Nick'   // femininos
 };
-// Rival do jogador: Luke (menino) -> Mike (loiro); Ayla (menina) -> Jade (loira).
-function nomeRival(){ return PLAYER_GENERO==='f' ? 'Jade' : 'Mike'; }
-// conjunto de sprites do rival (loiro p/ Mike, loira p/ Jade)
-function spriteSetRival(){ return PLAYER_GENERO==='f' ? SPRITE_ANIM_OBJ_LF : SPRITE_ANIM_OBJ_L; }
+// Rival do jogador = o "par" não escolhido: Luke<->Mike, Ayla<->Jade.
+const RIVAL_DE = { m:'l', l:'m', f:'lf', lf:'f' };
+function generoRival(){ return RIVAL_DE[PLAYER_GENERO] || 'l'; }
+function nomeRival(){ return NOMES_PERSONAGEM[generoRival()] || 'Rival'; }
+// conjunto de sprites do rival, conforme o gênero-par
+function spriteSetRival(){
+  const g=generoRival();
+  return g==='m' ? SPRITE_ANIM_OBJ : g==='l' ? SPRITE_ANIM_OBJ_L
+       : g==='f' ? SPRITE_ANIM_OBJ_F : g==='lf' ? SPRITE_ANIM_OBJ_LF : SPRITE_ANIM_OBJ_L;
+}
 // true se o jogador ainda tem algum Pokémon vivo
 function temPokemonVivo(){ return equipeAtiva.some(p=>p && p.hp>0); }
 // bloqueia início de batalha/encontro quando todos desmaiaram (avisa e retorna true)
