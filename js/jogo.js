@@ -156,36 +156,45 @@ let audioCtx=null, loopAudio=null, volMestre=0.5, mutado=false;
 function alternarConfig(){const m=$('modal-configuracoes'); m.style.display=m.style.display==='flex'?'none':'flex';}
 // ===== Minimapa =====
 function corMinimapa(v){
-  if(v===13)return '#2f7df0';                 // rio
-  if(v===14)return '#caa15a';                 // ponte
-  if([24].includes(v))return '#b9b9c2';       // calçada
-  if([25,26].includes(v))return '#3c3f47';    // asfalto
-  if(v===10)return '#d9b779';                 // estrada de terra
-  if([1,4].includes(v))return '#8a5a3c';      // paredes/casas
-  if([3,5,6,7,9,17,19].includes(v))return '#6d4c34'; // interiores
-  if(v===2)return '#256b2c';                  // mato alto
-  if([12,20,21,22].includes(v))return '#1f7a3a'; // árvores
-  if([23,15].includes(v))return '#3f9d4f';    // vegetação/flor
-  if(v===8||v===1)return '#0b0f18';           // fora/borda
-  if(v===11)return '#7a5a3a';
-  if(v===16||v===29)return '#9aa3b5';
-  return '#3f7d3f';                            // campo aberto
+  if(v===13||v===84)return '#3a82e8';            // rio / ponte quebrada
+  if(v===14)return '#a87b46';                    // ponte
+  if(v===24)return '#c3c6cd';                    // calçada
+  if(v===31||v===68)return '#eef0f3';            // faixa de pedestre
+  if(v===25||v===26)return '#41454e';            // asfalto
+  if(v===32)return '#b08755';                    // calçada marrom
+  if(v===10||v===33)return '#d2b074';            // estrada de terra / terra batida
+  if(v===4||v===36||v===38)return '#b14a3a';     // telhado/fachada (casas)
+  if(v===30)return '#3a5fb0';                    // ginásio (teto azul)
+  if(v===35||v===37||v===53)return '#9a6a4a';    // tijolo/janela
+  if([3,5,6,7,9,17,19,40,57].includes(v))return '#6d4c34'; // interiores
+  if(v===2)return '#2e8a3a';                     // mato alto
+  if([12,20,21,22,34,69].includes(v))return '#1f7a3a'; // árvores
+  if(v===83)return '#7a5a2a';                    // árvore marrom
+  if([23,15,61,62,63,65].includes(v))return '#46b056'; // vegetação/flor
+  if(v===11)return '#7a5a3a';                    // tronco
+  if(v===16||v===29||v===64)return '#9aa3b5';    // placa/poste
+  if(v===87)return '#ff7a18';                    // cerca policial
+  if([80,81,82].includes(v))return '#5b6680';    // estação/trem
+  if(v===74||v===85||v===86)return '#caa15a';    // caixa correio / baú
+  if(v===8||v===1||v===66)return '#0b0f18';      // fora/borda/montanha
+  return '#57aa57';                               // campo aberto (grama)
 }
 function desenharMinimapa(){
   let cv=$('cv-mapa'); if(!cv)return; let ctx=cv.getContext('2d');
   let sx=cv.width/LARGURA_MAPA, sy=cv.height/ALTURA_MAPA;
+  ctx.imageSmoothingEnabled=true;
   ctx.clearRect(0,0,cv.width,cv.height);
   for(let r=0;r<ALTURA_MAPA;r++)for(let c=0;c<LARGURA_MAPA;c++){
     ctx.fillStyle=corMinimapa(MAPA[r][c]);
-    ctx.fillRect(Math.floor(c*sx),Math.floor(r*sy),Math.ceil(sx),Math.ceil(sy));
+    ctx.fillRect(Math.round(c*sx),Math.round(r*sy),Math.ceil(sx)+1,Math.ceil(sy)+1);
   }
   // carros
   ctx.fillStyle='#ffd35a';
-  if(typeof carros!=='undefined') carros.forEach(car=>{ ctx.fillRect(Math.floor(car.x*sx),Math.floor(car.y*sy),Math.ceil(sx*2),Math.ceil(sy)); });
-  // jogador (ponto vermelho pulsante)
-  ctx.fillStyle='#ff3b3b';
-  let pxp=Math.floor(player.x*sx), pyp=Math.floor(player.y*sy);
-  ctx.fillRect(pxp-1,pyp-1,Math.ceil(sx)+2,Math.ceil(sy)+2);
+  if(typeof carros!=='undefined') carros.forEach(car=>{ ctx.fillRect(Math.round(car.x*sx),Math.round(car.y*sy),Math.ceil(sx*2),Math.ceil(sy)); });
+  // jogador: marcador redondo com contorno (mais "mapa")
+  let pxp=(player.x+0.5)*sx, pyp=(player.y+0.5)*sy, raio=Math.max(5,sx*0.7);
+  ctx.beginPath(); ctx.arc(pxp,pyp,raio,0,7); ctx.fillStyle='#ff2d3a'; ctx.fill();
+  ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.stroke();
 }
 function abrirMapa(){ if(!jogoIniciado)return; $('modal-mapa').style.display='flex'; desenharMinimapa(); }
 function fecharMapa(){ $('modal-mapa').style.display='none'; }
@@ -944,6 +953,11 @@ function cercadoMato(ox,oy,larg,alt){
   linha('AX36','AX41',ARV);         // árvores
   set('AY41',85);                   // baú (dinheiro + 2 pokébolas)
 
+  // ---- LOTE 8: bloqueio policial + ponte ----
+  ['R27','R29'].forEach(c=>set(c,87));   // cerca policial (interdição)
+  set('T47',13);                          // remove a ponte (vira água)
+  ['U47','V47'].forEach(c=>set(c,84));    // ponte quebrada
+
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
   // prateleiras viradas 180° em F44..L44
@@ -1008,6 +1022,8 @@ function cercadoMato(ox,oy,larg,alt){
   (function(){ const POSTE=64; for(let c=3;c<=50;c+=7){ if(MAPA[21]?.[c]!==undefined) MAPA[21][c]=POSTE; if(MAPA[26]?.[c]!==undefined) MAPA[26][c]=POSTE; } 
     // garante o poste final em AY (col 50)
     if(MAPA[21]?.[50]!==undefined) MAPA[21][50]=POSTE; if(MAPA[26]?.[50]!==undefined) MAPA[26][50]=POSTE; })();
+  // reafirma a cerca policial (o poste de 7-em-7 caía em R27 e sobrescrevia)
+  ['R27','R29'].forEach(c=>set(c,87));
 
   // ====== balcão da casa 2 já foi copiado p/ casa 3 -> remove o da casa 2 (vira piso) ======
   ['G43','G42','G41','H41','I41','J41','K41','K42','K43'].forEach(c=>set(c,PISO));
@@ -1377,6 +1393,11 @@ let npcsCampo=[
   {nome:'Criança A',x:27,y:17,cor:'c-amarelo',escala:0.8,msg:"Criança:\nViu as flores ali? Tem de várias cores! Minha favorita é a vermelha."},
   {nome:'Criança B',x:28,y:17,cor:'c-verde',escala:0.8,msg:"Criança:\nEu gosto mais dos girassóis! Eles ficam virados pro sol o dia todo."},
   {nome:'Policial',x:43,y:30,spriteCustom:'policia',msg:"Policial:\nMantenha a ordem na cidade, treinador. A travessia é só nas faixas de pedestre!"},
+  // Bloqueio policial em R (col 17): dois guardas + cerca, caminho interditado
+  {nome:'Policial2',x:17,y:27,cor:'c-azul-r',dir:'esquerda',msg:"Policial:\n🚧 Este caminho está INTERDITADO! Ninguém passa por aqui hoje."},
+  {nome:'Policial3',x:17,y:29,cor:'c-azul-r',dir:'esquerda',msg:"Policial:\nDesculpe, treinador. A via está fechada — siga por outro caminho."},
+  // Aviso perto do rio (R46): cuidado, caminho perigoso
+  {nome:'Aviso',x:17,y:45,cor:'c-marrom-b',dir:'cima',msg:"Morador:\nCuidado! O caminho à frente é perigoso. Pokémon fortes rondam por aqui — vá com atenção."},
   {nome:'Professor',x:27,y:18,spriteCustom:'professor',msg:"Professor:\nBem-vindo ao meu laboratório de campo! Estude bem cada Pokémon que encontrar."},
   {nome:'Sábio',x:28,y:18,spriteCustom:'sabio',msg:"Sábio:\nJá percorri muitas regiões com esta mochila. A jornada ensina mais que qualquer batalha."}
 ];
@@ -2299,6 +2320,7 @@ function desenharMundo(){
       else if(v===84){tile.classList.add('agua','ponte-quebrada'); tile.innerText='🪵';}  // ponte quebrada
       else if(v===85){tile.classList.add('piso-cinza','bau'); tile.innerText='🎁';}        // baú (com recompensa)
       else if(v===86){tile.classList.add('piso-cinza','bau-aberto'); tile.innerText='📭';} // baú aberto
+      else if(v===87){tile.classList.add('cerca-policial'); tile.style.overflow='visible';} // cerca policial (interdição)
       else if(v===17){tile.classList.add('mesa'); tile.innerText='🛒'; tile.style.fontSize='12px';}
       else if(v===19){tile.classList.add('prateleira');}
       else if(v===40)tile.classList.add('piso-quarto');
@@ -2615,8 +2637,7 @@ function interagirBotaoE(){
       let intro = rivalVitoriasJogador===0
         ? "Rival "+nomeRival()+":\nFinalmente te encontrei! Sou seu maior rival. Vou provar que sou melhor treinador — prepare-se!"
         : "Rival "+nomeRival()+":\nNos encontramos de novo! Eu treinei muito desde a última vez. Agora estou MUITO mais forte. Você não tem chance!";
-      mostrarAviso(intro);
-      setTimeout(()=>{ iniciarBatalhaTreinador(npcC); }, 1100); return;
+      mostrarAviso(intro, ()=>iniciarBatalhaTreinador(npcC)); return;
     }
     // NPCs do cabelo (Criança AV28 / Moça AW28): rajada de folhas da direita p/ a esquerda
     if(npcC.y===27 && (npcC.x===47||npcC.x===48)) efeitoFolhas();
@@ -2803,7 +2824,7 @@ function venderPokemon(idx){
 }
 
 /* ============ MOVEMENT ============ */
-const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82,83,84,85];
+const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82,83,84,85,87];
 function forcarMovimento(letra){
   if(!jogoIniciado||mostrandoNotificacao||emLoja||emCutscene)return;
   let agora=Date.now(); if(agora-ultimoPasso<INTERVALO)return; ultimoPasso=agora;
@@ -2871,8 +2892,9 @@ function rivalSeAproxima(){
         clearInterval(it);
         emCutscene=false;
         montarTimeRival(); desenharMundo();
-        mostrarAviso("Rival "+nomeRival()+":\nEspera aí! Vi que você pegou seu primeiro Pokémon. Vamos ver agora mesmo quem é o melhor treinador — vem pra cima!");
-        setTimeout(()=>{ let r=npcsCampo.find(n=>n.ehRival); if(r && !bloquearSemPokemon()) iniciarBatalhaTreinador(r); }, 1300);
+        // o diálogo só avança quando o jogador apertar E; aí começa a batalha
+        mostrarAviso("Rival "+nomeRival()+":\nEspera aí! Vi que você pegou seu primeiro Pokémon. Vamos ver agora mesmo quem é o melhor treinador — vem pra cima!",
+          ()=>{ let r=npcsCampo.find(n=>n.ehRival); if(r && !bloquearSemPokemon()) iniciarBatalhaTreinador(r); });
       }
     }, 480);                       // mais devagar (era 350)
   }, 1000);
