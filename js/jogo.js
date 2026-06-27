@@ -1056,6 +1056,41 @@ function cercadoMato(ox,oy,larg,alt){
   (function(){ let cc=coord('AX4').c; for(let r=4-1;r<=6-1;r++){ if(MAPA[r]?.[cc]!==undefined && MAPA[r][cc]===0) MAPA[r][cc]=ARV; } })();
 })();
 
+// ===== PLACAS na frente das casas (rótulo conforme os NPCs internos) =====
+// Mapa de posição 'c,r' -> texto. Tile 16 (placa) é sólido; interage com [E] por adjacência.
+let PLACAS={};
+function colocarPlacas(){
+  PLACAS={};
+  // porta/entrada de cada casa (coord interna) -> rótulo
+  const defs=[
+    {d:[8,11],  txt:"🔬 LABORATÓRIO\nO Prof. Cedro entrega seu primeiro Pokémon."},
+    {d:[43,11], txt:"🏋 GINÁSIO\nDesafie o Líder para ganhar uma insígnia."},
+    {d:[8,36],  txt:"🏪 LOJA\nCompre Pokébolas e itens com o vendedor."},
+    {d:[43,36], txt:"🏥 CENTRO POKÉMON\nUse [E] no computador para curar TODA a equipe de graça."},
+  ];
+  const livre=(x,y)=> MAPA[y] && MAPA[y][x]!==undefined && !isInHouse(x,y)
+    && SOLIDOS.indexOf(MAPA[y][x])<0 && MAPA[y][x]!==2 && MAPA[y][x]!==13;
+  defs.forEach(({d,txt})=>{
+    let [dx,dy]=d;
+    // célula de saída: vizinha ortogonal da porta, fora da casa e andável (fica desobstruída)
+    let fora=[[0,1],[0,-1],[1,0],[-1,0]].map(([ox,oy])=>[dx+ox,dy+oy]).find(([x,y])=>livre(x,y));
+    if(!fora) return;
+    let [fx,fy]=fora;
+    let ex=fx-dx, ey=fy-dy;       // direção do caminho de saída
+    let bx=fx+ex, by=fy+ey;       // um passo além da saída
+    // placa ao LADO (perpendicular ao caminho): ao lado da saída, depois um passo além, depois ao lado da porta
+    let perp = (ex===0) ? [[1,0],[-1,0]] : [[0,1],[0,-1]];
+    let cands = [
+      [fx+perp[0][0], fy+perp[0][1]], [fx+perp[1][0], fy+perp[1][1]],
+      [bx+perp[0][0], by+perp[0][1]], [bx+perp[1][0], by+perp[1][1]],
+      [dx+perp[0][0], dy+perp[0][1]], [dx+perp[1][0], dy+perp[1][1]],
+    ];
+    let pos = cands.find(([x,y])=>livre(x,y));
+    if(!pos) return;
+    let [px,py]=pos; MAPA[py][px]=16; PLACAS[px+','+py]=txt;
+  });
+}
+
 // Coordenadas que, vistas DE FORA, mostram fachada (em vez de telhado); por dentro preservam o tile real
 let fachadaExterna=new Set();
 (function(){
@@ -2446,6 +2481,11 @@ function voltarBotaoB(){
 function interagirBotaoE(){
   if(mostrandoNotificacao){fecharNotificacao(); return;}
   if(emBatalha||emParty||emPokedex||emLoja||!jogoIniciado)return;
+  // Placa adjacente: mostra o rótulo da casa
+  for(const [ox,oy] of [[0,-1],[0,1],[-1,0],[1,0]]){
+    let k=(player.x+ox)+','+(player.y+oy);
+    if(PLACAS[k]){ mostrarAviso(PLACAS[k]); return; }
+  }
   // Pokémon selvagem fixo adjacente: batalha com [E]
   let pfa=pokemonsFixos.find(p=>!p.derrotado && (p.tiles? p.tiles.some(t=>Math.abs(t[0]-player.x)<=1&&Math.abs(t[1]-player.y)<=1) : (Math.abs(p.x-player.x)<=1&&Math.abs(p.y-player.y)<=1)));
   if(pfa && inicialEscolhido){ iniciarBatalhaFixo(pfa); return; }
@@ -3341,6 +3381,7 @@ setInterval(()=>{
 
 /* ============ INIT ============ */
 function inicializarJogo(){
+  colocarPlacas();
   renderizarJogador();
   divMapa.style.gridTemplateColumns=`repeat(${LARGURA_MAPA}, ${TILE}px)`;
   divMapa.style.gridTemplateRows=`repeat(${ALTURA_MAPA}, ${TILE}px)`;
