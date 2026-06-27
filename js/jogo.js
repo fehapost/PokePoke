@@ -29,6 +29,10 @@ const TIPOS_BOLA={
   master: {nome:'Master Ball', icone:'🟣', mult:999,  preco:9000, cor:'#8a5cff'}
 };
 const ORDEM_BOLAS=['poke','great','ultra','premier','master'];
+// sorteia o tipo de uma pokébola do chão (mesma distribuição da coleta)
+function sortearTipoBola(){ let r=Math.random(); return r<0.55?'poke': r<0.82?'great': r<0.95?'ultra': r<0.99?'premier':'master'; }
+// mini-pokébola desenhada em CSS com a cor do tipo (metade de cima colorida)
+function bolaColoridaHTML(cor){ return '<span class="bola-cor" style="--bcor:'+cor+'"></span>'; }
 let bolsa={poke:5, great:0, ultra:0, premier:0, master:0};
 let bolaSelecionada='poke';
 
@@ -64,6 +68,7 @@ function salvarJogo(){
       fixos: pokemonsFixos.map(p=>({nome:p.nome, x:p.x, y:p.y, lvl:p.lvl, derrotado:p.derrotado, tiles:p.tiles, emoji:p.emoji, aleatorio:p.aleatorio})),
       rivalNivel: (typeof rivalNivel!=='undefined'?rivalNivel:null),
       rivalVitorias: (typeof rivalVitoriasJogador!=='undefined'?rivalVitoriasJogador:0),
+      rivalChamou: (typeof rivalChamouPrimeiro!=='undefined'?rivalChamouPrimeiro:false),
       rivalEquipe: (typeof rivalEquipe!=='undefined'?rivalEquipe:[]),
       companheiro: companheiro ? {nome:companheiro.nome, x:companheiro.x, y:companheiro.y, dir:companheiro.dir} : null
     };
@@ -105,6 +110,7 @@ function carregarJogo(){
     if(d.genero){ PLAYER_GENERO = (d.genero==='f'?'f':(d.genero==='l'?'l':(d.genero==='lf'?'lf':(d.genero==='nb'?'nb':(d.genero==='np'?'np':(d.genero==='ea'?'ea':(d.genero==='ev'?'ev':(d.genero==='es'?'es':(d.genero==='pg'?'pg':'m'))))))))); }
     if(typeof d.nome==='string' && d.nome.trim()){ nomeJogador=d.nome.trim(); nomeEditadoManual=true; _setCamposNome(nomeJogador); }
     if(typeof d.rivalNivel!=='undefined') rivalNivel=d.rivalNivel;
+    if(typeof d.rivalChamou==='boolean') rivalChamouPrimeiro=d.rivalChamou;
     if(typeof d.rivalVitorias==='number') rivalVitoriasJogador=d.rivalVitorias;
     if(Array.isArray(d.rivalEquipe)) rivalEquipe=d.rivalEquipe;
 
@@ -510,6 +516,7 @@ const CASAS=[
   {nome:'Ginásio Oeste',      tipo:'ginasio', x0:3,  y0:36, x1:13, y1:44, porta:[8,36]},
   {nome:'Centro Pokémon',     tipo:'centro',  x0:38, y0:36, x1:48, y1:44, porta:[43,36]},
   {nome:'Casa de Pedra',      tipo:'pedra',   x0:52, y0:4,  x1:65, y1:17, porta:[58,17]},
+  {nome:'Casa Aconchego',     tipo:'casa',    x0:59, y0:31, x1:65, y1:35, porta:[59,33]},
 ];
 function construirCasa(b){
   for(let r=b.y0;r<=b.y1;r++)for(let c=b.x0;c<=b.x1;c++){
@@ -888,6 +895,23 @@ function cercadoMato(ox,oy,larg,alt){
   // caminho de terra: BD31..BD38 e BE31..BE38 (2 colunas), + BE47/BF47
   linha('BD31','BD38',TERRA); linha('BE31','BE38',TERRA);
   ['BE47','BF47'].forEach(c=>set(c,TERRA));
+
+  // ---- LOTE 6: ajustes pedidos ----
+  set('J14',GRAMA);                 // remover tronco em J14
+  set('F13',T);                     // tronco em F13
+  set('H13',74);                    // caixa de correio em H13
+  // árvores
+  ['AX43','AX44','AX45','AY43'].forEach(c=>set(c,ARV));
+  // quadrado de mato alto BB39..BL44 (preenche)
+  bloco('BB39','BL44',MATO);
+  // troncos intercalados com árvores na coluna BC39..BC44
+  (function(){ let cc=coord('BC39').c; let r0=39-1, r1=44-1; let alt=true;
+    for(let r=r0;r<=r1;r++){ if(MAPA[r]?.[cc]!==undefined){ MAPA[r][cc]= alt?T:ARV; alt=!alt; } } })();
+  // móveis da nova casa (Casa Aconchego, BH32..BN36): mesa de centro + cadeiras
+  set('BK34',6);                    // mesa de centro (62,33)
+  set('BK33',75); set('BK35',75);   // cadeiras acima/abaixo da mesa
+  // fecha o buraco na parede esquerda (BH32/BH33 estavam como estrada) — só a porta BH34 abre
+  ['BH32','BH33'].forEach(c=>set(c,4));
 
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
@@ -1309,7 +1333,10 @@ setInterval(()=>{
 let npcsInternos=[
   {nome:'PROF',x:8,y:7,cor:'c-branco',spriteCustom:'professor',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos.\n\nIMPORTANTE: quando seus Pokémon ficarem feridos ou desmaiarem, vá ao CENTRO POKÉMON (a casa de teto vermelho) e use [E] no computador de cura para recuperar TODA a equipe de graça. Se todos desmaiarem, você não poderá batalhar até curá-los lá!"},
   {nome:'Vendedor',x:43,y:40,cor:'c-azul-r',msg:"Vendedor de Pokémon:\nCompro e vendo Pokémon! As ofertas mudam a cada 5 minutos."},
-  {nome:'Vendedor2',x:8,y:41,cor:'c-verde',dir:'cima',msg:"Vendedor:\nPokébolas a bom preço, freguês!"}
+  {nome:'Vendedor2',x:8,y:41,cor:'c-verde',dir:'cima',msg:"Vendedor:\nPokébolas a bom preço, freguês!"},
+  // Casa Aconchego (BH32..BN36): dois moradores em volta da mesa de centro
+  {nome:'Morador',x:61,y:33,cor:'c-rosa',dir:'direita',msg:"Moradora:\nQue bom receber visita! Senta um pouco com a gente."},
+  {nome:'Morador2',x:63,y:33,cor:'c-azul-j',dir:'esquerda',msg:"Morador:\nEsta vila é tranquila. Um bom chá e boa conversa é tudo que precisamos."}
 ];
 let balconista={x:-9,y:-9,cor:'c-verde'}; // removido (loja de cura desativada)
 // NPCs decorativos de campo (sem batalha) — interagíveis com [E]
@@ -1325,6 +1352,7 @@ let npcsCampo=[
 ];
 // Estado do nível do rival: null = primeira batalha (usa jogador-1); depois vira fixo e sobe +4 por derrota
 let rivalNivel=null, rivalVitoriasJogador=0;
+let rivalChamouPrimeiro=false; // true depois do desafio do rival na 1ª saída do laboratório
 let rivalEquipe=[]; // espécies FIXAS do rival (uma vez sorteadas, nunca mudam); cresce até 5 nas vitórias do jogador
 const RIVAL_MAX=5;
 // Sorteia uma espécie nova ainda não usada pelo rival
@@ -2228,6 +2256,8 @@ function desenharMundo(){
       else if(v===14)tile.classList.add('ponte');
       else if(v===15){tile.classList.add('piso-cinza','flor'); tile.innerText=Math.random()>.5?'🌼':'🌸';}
       else if(v===16){tile.classList.add('piso-cinza','placa'); tile.innerText='🪧';}
+      else if(v===74){tile.classList.add('piso-cinza','caixa-correio'); tile.innerText='📫';}
+      else if(v===75){tile.classList.add('chao-casa','cadeira'); tile.innerText='🪑';}
       else if(v===17){tile.classList.add('mesa'); tile.innerText='🛒'; tile.style.fontSize='12px';}
       else if(v===19){tile.classList.add('prateleira');}
       else if(v===40)tile.classList.add('piso-quarto');
@@ -2274,8 +2304,9 @@ function desenharMundo(){
   }
   // Pokébolas espalhadas no chão (escondidas quando o jogador está dentro de casa)
   bolasNoChao.forEach(b=>{ if(!personagemVisivel(b.x,b.y,playerInHouse))return;
+    if(!b.tipo) b.tipo=sortearTipoBola();   // cada bola tem a sua cor (persiste no save)
     let el=document.createElement('div'); el.className='item-bola bobbing';
-    el.innerHTML=ICONE_BOLA_HTML; el.style.left=(b.x*TILE)+'px'; el.style.top=(b.y*TILE)+'px'; divMapa.appendChild(el);});
+    el.innerHTML=bolaColoridaHTML(TIPOS_BOLA[b.tipo].cor); el.style.left=(b.x*TILE)+'px'; el.style.top=(b.y*TILE)+'px'; divMapa.appendChild(el);});
 
   if(playerInHouse)npcsInternos.forEach(n=>{
     let el;
@@ -2497,41 +2528,44 @@ function voltarBotaoB(){
   if(emParty){ fecharParty(); return; }
   if(emPokedex){ fecharPokedex(); return; }
 }
+// tile imediatamente à frente do jogador (conforme direcaoAtual)
+function tileFrente(){
+  let dx=0,dy=0;
+  if(direcaoAtual==='cima')dy=-1; else if(direcaoAtual==='baixo')dy=1;
+  else if(direcaoAtual==='esquerda')dx=-1; else dx=1;
+  return {x:player.x+dx, y:player.y+dy};
+}
 function interagirBotaoE(){
   if(mostrandoNotificacao){fecharNotificacao(); return;}
   if(emBatalha||emParty||emPokedex||emLoja||!jogoIniciado)return;
-  // Placa adjacente: mostra o rótulo da casa
-  for(const [ox,oy] of [[0,-1],[0,1],[-1,0],[1,0]]){
-    let k=(player.x+ox)+','+(player.y+oy);
-    if(PLACAS[k]){ mostrarAviso(PLACAS[k]); return; }
-  }
-  // Pokémon selvagem fixo adjacente: batalha com [E]
-  let pfa=pokemonsFixos.find(p=>!p.derrotado && (p.tiles? p.tiles.some(t=>Math.abs(t[0]-player.x)<=1&&Math.abs(t[1]-player.y)<=1) : (Math.abs(p.x-player.x)<=1&&Math.abs(p.y-player.y)<=1)));
+  // SÓ interage com o tile/entidade PARA ONDE o jogador está virado
+  const F=tileFrente(); const fx=F.x, fy=F.y;
+  const naFrente=(x,y)=> x===fx && y===fy;
+  const tf=MAPA[fy]?.[fx];
+  // Placa à frente
+  if(PLACAS[fx+','+fy]){ mostrarAviso(PLACAS[fx+','+fy]); return; }
+  // Pokémon selvagem fixo à frente: batalha com [E]
+  let pfa=pokemonsFixos.find(p=>!p.derrotado && (p.tiles? p.tiles.some(t=>naFrente(t[0],t[1])) : naFrente(p.x,p.y)));
   if(pfa && inicialEscolhido){ iniciarBatalhaFixo(pfa); return; }
-
-  // Escolher inicial na mesa do professor → abre pop-up com as 4 opções
+  // Escolher inicial: encarando uma Pokébola/mesa na mesa do professor
   if(!inicialEscolhido){
-    let s=STARTERS.find(s=>Math.abs(s.x-player.x)<=1&&Math.abs(s.y-player.y)<=1);
-    if(s || (casaEm(player.x,player.y)&&casaEm(player.x,player.y).tipo==='lab')){ abrirStarterPopup(); return; }
+    let s=STARTERS.find(s=>naFrente(s.x,s.y));
+    if(s || (tf===6 && casaEm(fx,fy)&&casaEm(fx,fy).tipo==='lab')){ abrirStarterPopup(); return; }
   }
-  // Coletar Pokébola do chão
-  let idx=bolasNoChao.findIndex(b=>Math.abs(b.x-player.x)<=1&&Math.abs(b.y-player.y)<=1);
+  // Coletar Pokébola à frente
+  let idx=bolasNoChao.findIndex(b=>naFrente(b.x,b.y));
   if(idx>=0){coletarBola(idx); return;}
-  // Balconista da loja
-  if(Math.abs(balconista.x-player.x)<=1&&Math.abs(balconista.y-player.y)<=1 && casaEm(player.x,player.y)){abrirLoja(); return;}
-  // Caixa registradora (balcão)
-  for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){if(MAPA[player.y+y]?.[player.x+x]===17){abrirLoja(); return;}}
-  // Balcão de loja da casa 2 (tile 57)
-  for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){if(MAPA[player.y+y]?.[player.x+x]===57){
-    let cb=casaEm(player.x,player.y);
-    if(cb && cb.tipo==='centro') abrirLojaPokemon(); else abrirLojaBalcao();
-    return;
-  }}
-  // NPCs do lab/centro
-  let npc=npcsInternos.find(n=>Math.abs(n.x-player.x)<=1&&Math.abs(n.y-player.y)<=1);
+  // Balconista à frente
+  if(naFrente(balconista.x,balconista.y) && casaEm(player.x,player.y)){abrirLoja(); return;}
+  // Caixa registradora (17) à frente
+  if(tf===17){abrirLoja(); return;}
+  // Balcão de loja (57) à frente
+  if(tf===57){ let cb=casaEm(player.x,player.y); if(cb && cb.tipo==='centro') abrirLojaPokemon(); else abrirLojaBalcao(); return; }
+  // NPC interno à frente
+  let npc=npcsInternos.find(n=>naFrente(n.x,n.y));
   if(npc&&isInHouse(player.x,player.y)){mostrarAviso(npc.msg); return;}
-  // NPCs de campo (fora de casa)
-  let npcC=npcsCampo.find(n=>Math.abs(n.x-player.x)<=1&&Math.abs(n.y-player.y)<=1);
+  // NPC de campo à frente (fora de casa)
+  let npcC=npcsCampo.find(n=>naFrente(n.x,n.y));
   if(npcC && !isInHouse(player.x,player.y)){
     if(npcC.ehRival){
       if(equipeAtiva.length===0){ mostrarAviso("Rival "+nomeRival()+":\nVá pegar um Pokémon primeiro! Aí a gente batalha."); return; }
@@ -2547,15 +2581,12 @@ function interagirBotaoE(){
     if(npcC.y===27 && (npcC.x===47||npcC.x===48)) efeitoFolhas();
     mostrarAviso(npcC.msg); return;
   }
-  // PC de cura
-  for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){let tt=MAPA[player.y+y]?.[player.x+x]; if(tt===7||tt===55){curarNoPc(); return;}}
-  // Placas
-  for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){if(MAPA[player.y+y]?.[player.x+x]===16){mostrarAviso("🪧 Placa:\nMato alto à frente — Pokémon selvagens rondam. Pokémart logo acima, Ginásio a leste."); return;}}
+  // PC de cura à frente
+  if(tf===7||tf===55){curarNoPc(); return;}
 }
 function coletarBola(idx){
+  let tipo = bolasNoChao[idx].tipo || sortearTipoBola();   // pega o tipo (cor) da bola coletada
   bolasNoChao.splice(idx,1);
-  // sorteio de raridade
-  let r=Math.random(), tipo = r<0.55?'poke': r<0.82?'great': r<0.95?'ultra': r<0.99?'premier':'master';
   bolsa[tipo]++; sfx(700,0.1); setTimeout(()=>sfx(950,0.12),100);
   desenharMundo();
   mostrarAviso(`Você encontrou uma ${TIPOS_BOLA[tipo].icone} ${TIPOS_BOLA[tipo].nome}!`);
@@ -2717,7 +2748,7 @@ function venderPokemon(idx){
 }
 
 /* ============ MOVEMENT ============ */
-const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70];
+const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75];
 function forcarMovimento(letra){
   if(!jogoIniciado||mostrandoNotificacao||emLoja)return;
   let agora=Date.now(); if(agora-ultimoPasso<INTERVALO)return; ultimoPasso=agora;
@@ -2760,11 +2791,32 @@ function forcarMovimento(letra){
   let _prevX=player.x, _prevY=player.y; // posição que o jogador deixa (vira destino do companheiro)
   player.x=px;player.y=py; atualizarCamera(); desenharMundo();
   if(companheiro){ avancarCompanheiro(_prevX, _prevY, direcaoAtual); }
+  // Primeira saída do laboratório: o rival se aproxima e te desafia
+  if(!rivalChamouPrimeiro && inicialEscolhido && casaEm(_prevX,_prevY)?.tipo==='lab' && !isInHouse(px,py)){
+    rivalChamouPrimeiro=true; setTimeout(()=>rivalSeAproxima(), 400);
+  }
   if(bloco===2){ somMato(); }                 // farfalhar ao andar no mato
   musicaPorRegiao();                           // troca trilha se mudou de lado do rio / casa
   if(bloco===2&&Math.random()<0.16){setTimeout(()=>iniciarBatalhaSelvagem(true),140);}
 }
 function passoVisual(){const p=$('player'); p.classList.remove('andando'); void p.offsetWidth; p.classList.add('andando');}
+// Rival se aproxima na 1ª saída do laboratório: começa 3 tiles abaixo do jogador,
+// anda 2 passos em direção a ele e chama para a batalha.
+function rivalSeAproxima(){
+  let rival=npcsCampo.find(n=>n.ehRival); if(!rival || !inicialEscolhido) return;
+  rival.x=player.x; rival.y=Math.min(ALTURA_MAPA-2, player.y+3); rival.dir='cima';
+  desenharMundo();
+  let passos=2;
+  let it=setInterval(()=>{
+    if(rival.y>player.y+1){ rival.y--; desenharMundo(); }
+    if(--passos<=0){
+      clearInterval(it);
+      montarTimeRival(); desenharMundo();
+      mostrarAviso("Rival "+nomeRival()+":\nEspera aí! Vi que você pegou seu primeiro Pokémon. Vamos ver agora mesmo quem é o melhor treinador — vem pra cima!");
+      setTimeout(()=>{ let r=npcsCampo.find(n=>n.ehRival); if(r && !bloquearSemPokemon()) iniciarBatalhaTreinador(r); }, 1300);
+    }
+  }, 350);
+}
 
 /* ============ BATTLE ============ */
 let atbJogador=0,atbInimigo=0,loopATB=null,turnoPausado=false;
