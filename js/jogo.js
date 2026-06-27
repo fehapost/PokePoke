@@ -1,6 +1,6 @@
 
 /* ============ STATE ============ */
-const TILE=22, LARGURA_MAPA=67, ALTURA_MAPA=48;
+const TILE=24, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
 // NPCs (exceto lojistas) viram de lado a cada 15s
@@ -885,6 +885,9 @@ function cercadoMato(ox,oy,larg,alt){
   // Cantos D11/N11 sólidos (FACHADA); miolo andável por dentro, fachada por fora (FACHADA_PISO).
   ['D11','N11'].forEach(c=>set(c,FACHADA));
   ['E11','F11','H11','I11','J11','L11','M11'].forEach(c=>set(c,FACHADA_PISO));
+  // caminho de terra: BD31..BD38 e BE31..BE38 (2 colunas), + BE47/BF47
+  linha('BD31','BD38',TERRA); linha('BE31','BE38',TERRA);
+  ['BE47','BF47'].forEach(c=>set(c,TERRA));
 
   // ====== CASA 2 (Ginásio Oeste) — móveis + balcão de loja ======
   const ESTANTE_180=58, BALCAO=57;
@@ -1055,6 +1058,22 @@ function cercadoMato(ox,oy,larg,alt){
   // árvores AX4..AX6 (coluna)
   (function(){ let cc=coord('AX4').c; for(let r=4-1;r<=6-1;r++){ if(MAPA[r]?.[cc]!==undefined && MAPA[r][cc]===0) MAPA[r][cc]=ARV; } })();
 })();
+
+// ===== Efeito de FOLHAS ao vento: passam da direita (BC28) p/ a esquerda (AR28), em world coords =====
+function efeitoFolhas(){
+  if(typeof divMapa==='undefined' || !divMapa) return;
+  const x0=54, x1=43, y=27;            // BC28 (c54) -> AR28 (c43), linha 28 (r27)
+  const dxPx=(x1-x0)*TILE;             // deslocamento p/ a esquerda (negativo)
+  for(let i=0;i<14;i++){
+    let f=document.createElement('div'); f.className='folha-vento'; f.textContent='🍃';
+    f.style.left=(x0*TILE)+'px'; f.style.top=((y*TILE)+(Math.random()*22-6))+'px';
+    f.style.setProperty('--dx', dxPx+'px');
+    f.style.animationDelay=(i*0.12)+'s';
+    f.style.fontSize=(13+Math.random()*8)+'px';
+    divMapa.appendChild(f);
+    setTimeout(()=>{ if(f.parentNode) f.remove(); }, 2800+i*120);
+  }
+}
 
 // ===== PLACAS na frente das casas (rótulo conforme os NPCs internos) =====
 // Mapa de posição 'c,r' -> texto. Tile 16 (placa) é sólido; interage com [E] por adjacência.
@@ -1295,8 +1314,8 @@ let npcsInternos=[
 let balconista={x:-9,y:-9,cor:'c-verde'}; // removido (loja de cura desativada)
 // NPCs decorativos de campo (sem batalha) — interagíveis com [E]
 let npcsCampo=[
-  {nome:'Moça',x:48,y:27,cor:'c-roxo',msg:"Moça de cabelo grande:\nEsse vento todo bagunça meu cabelo, mas amo este lugar!"},
-  {nome:'Criança',x:47,y:27,cor:'c-amarelo',escala:0.8,dir:'direita',msg:"Criança:\nUm dia eu vou ser o melhor treinador de todos!"},
+  {nome:'Moça',x:48,y:27,cor:'c-roxo',msg:"Moça de cabelo grande:\nO vento daqui deixa o meu cabelo uma bagunça total!"},
+  {nome:'Criança',x:47,y:27,cor:'c-amarelo',escala:0.8,dir:'direita',msg:"Criança:\nEu A-DO-RO esse vento! Ele deixa meu cabelo todo bagunçado e eu acho isso o máximo!"},
   {nome:'RIVAL',x:8,y:13,cor:'c-preto',ehRival:true,corClasse:'c-preto',derrotado:false,lider:false,premio:1500,pokemons:[]},
   {nome:'Criança A',x:27,y:17,cor:'c-amarelo',escala:0.8,msg:"Criança:\nViu as flores ali? Tem de várias cores! Minha favorita é a vermelha."},
   {nome:'Criança B',x:28,y:17,cor:'c-verde',escala:0.8,msg:"Criança:\nEu gosto mais dos girassóis! Eles ficam virados pro sol o dia todo."},
@@ -2360,7 +2379,7 @@ function charDeImagem(img, escala){
   if(escala) d.style.transform='scale('+escala+')';
   return d;
 }
-function atualizarCamera(){divMapa.style.left=(259-player.x*TILE)+'px'; divMapa.style.top=(259-player.y*TILE)+'px';}
+function atualizarCamera(){divMapa.style.left=(258-player.x*TILE)+'px'; divMapa.style.top=(258-player.y*TILE)+'px';}
 
 // ===== CARROS EM MOVIMENTO (direita -> esquerda, em linha reta) =====
 // Faixas de tráfego: linhas de asfalto longe do centro da ponte. x em tiles (float).
@@ -2524,6 +2543,8 @@ function interagirBotaoE(){
       mostrarAviso(intro);
       setTimeout(()=>{ iniciarBatalhaTreinador(npcC); }, 1100); return;
     }
+    // NPCs do cabelo (Criança AV28 / Moça AW28): rajada de folhas da direita p/ a esquerda
+    if(npcC.y===27 && (npcC.x===47||npcC.x===48)) efeitoFolhas();
     mostrarAviso(npcC.msg); return;
   }
   // PC de cura
