@@ -640,6 +640,12 @@ body{
 .vg-btn span{font-size:9px; font-weight:700; color:var(--muted); letter-spacing:.2px}
 .d-pad{margin-top:6px}
 .btn-circ.map{background:#8a5cff; color:#fff; border-color:#8a5cff}
+/* controles de quantidade do carrinho da loja */
+.qty-ctrl{display:flex; align-items:center; gap:7px; flex:0 0 auto}
+.qty-btn{width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--panel2);
+  color:var(--ink); font-weight:800; font-size:17px; cursor:pointer; line-height:1; display:grid; place-items:center}
+.qty-btn:hover{border-color:var(--accent)} .qty-btn:active{transform:translateY(1px)}
+.qty-num{min-width:24px; text-align:center; font-weight:800; font-size:15px}
 .btn-circ{flex:0 0 auto; width:44px; height:44px; border-radius:50%; border:1px solid var(--line); cursor:pointer;
   font-weight:800; font-size:15px; display:grid; place-items:center; line-height:1;
   background:var(--panel2); color:var(--ink); box-shadow:0 2px 6px rgba(0,0,0,.35)}

@@ -23,16 +23,16 @@ let emLoja=false, selecionandoBola=false;
 let dinheiro=0;
 // 5 tipos de bola. mult = bônus na taxa de captura; master sempre captura.
 const TIPOS_BOLA={
-  poke:   {nome:'Poké Ball',   icone:'🔴', mult:1.0,  preco:200,  cor:'#ff3b4e'},
-  great:  {nome:'Great Ball',  icone:'🔵', mult:1.5,  preco:600,  cor:'#3a6bff'},
-  ultra:  {nome:'Ultra Ball',  icone:'🟡', mult:2.0,  preco:1200, cor:'#ffce4d'},
-  premier:{nome:'Premier Ball',icone:'⚪', mult:1.7,  preco:900,  cor:'#f3f3f3'},
-  master: {nome:'Master Ball', icone:'🟣', mult:999,  preco:9000, cor:'#8a5cff'}
+  poke:   {nome:'Esfera Comum',  icone:'🔴', mult:1.0,  preco:200,  cor:'#ff3b4e'},
+  great:  {nome:'Esfera Grande', icone:'🔵', mult:1.5,  preco:600,  cor:'#3a6bff'},
+  ultra:  {nome:'Esfera Ultra',  icone:'🟡', mult:2.0,  preco:1200, cor:'#ffce4d'},
+  premier:{nome:'Esfera Premier',icone:'⚪', mult:1.7,  preco:900,  cor:'#f3f3f3'},
+  master: {nome:'Esfera Mestra', icone:'🟣', mult:999,  preco:9000, cor:'#8a5cff'}
 };
 const ORDEM_BOLAS=['poke','great','ultra','premier','master'];
-// sorteia o tipo de uma pokébola do chão (mesma distribuição da coleta)
+// sorteia o tipo de uma esfera do chão (mesma distribuição da coleta)
 function sortearTipoBola(){ let r=Math.random(); return r<0.55?'poke': r<0.82?'great': r<0.95?'ultra': r<0.99?'premier':'master'; }
-// URL da pokébola padrão (mesma imagem de sempre) + filtro de cor por tipo
+// URL da esfera padrão (mesma imagem de sempre) + filtro de cor por tipo
 const POKEBALL_PNG='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
 const FILTRO_BOLA={
   poke:'none',
@@ -41,7 +41,7 @@ const FILTRO_BOLA={
   premier:'grayscale(1) brightness(1.55) contrast(.92)',
   master:'hue-rotate(262deg) saturate(1.5)'
 };
-// mesma pokébola de sempre, só recolorida por tipo (filtro CSS)
+// mesma esfera de sempre, só recolorida por tipo (filtro CSS)
 function bolaColoridaHTML(tipo){ return '<img src="'+POKEBALL_PNG+'" alt="bola" style="filter:'+(FILTRO_BOLA[tipo]||'none')+'">'; }
 let bolsa={poke:5, great:0, ultra:0, premier:0, master:0};
 let bolaSelecionada='poke';
@@ -951,7 +951,7 @@ function cercadoMato(ox,oy,larg,alt){
   ['AT23','AT24','AT25','AT26','AS23','AS24','AS25','AS26',
    'J23','J24','J25','J26','BN23','BN24','BN25','BN26'].forEach(c=>set(c,25));
   linha('AX36','AX41',ARV);         // árvores
-  set('AY41',85);                   // baú (dinheiro + 2 pokébolas)
+  set('AY41',85);                   // baú (dinheiro + 2 esferas)
 
   // ---- LOTE 8: bloqueio policial + ponte ----
   ['R27','R29'].forEach(c=>set(c,87));   // cerca policial (interdição)
@@ -1067,7 +1067,7 @@ function cercadoMato(ox,oy,larg,alt){
 
   // ====== LOTE NOVO MAPA ======
   const CALCADA_CINZA=24;
-  // (a pokébola de AH33 é adicionada junto às demais bolas fixas, após bolasNoChao existir)
+  // (a esfera de AH33 é adicionada junto às demais bolas fixas, após bolasNoChao existir)
   // troncos AC35..AH35
   (function(){ let A=coord('AC35'),B=coord('AH35'); for(let c=A.c;c<=B.c;c++){ if(MAPA[A.r]?.[c]!==undefined) MAPA[A.r][c]=T; } })();
   // troncos AA39..AG39
@@ -1156,7 +1156,7 @@ function colocarPlacas(){
   const defs=[
     {d:[8,11],  txt:"🔬 LABORATÓRIO\nO Prof. Cedro entrega seu primeiro Pokémon."},
     {d:[43,11], txt:"🏋 GINÁSIO\nDesafie o Líder para ganhar uma insígnia."},
-    {d:[8,36],  txt:"🏪 LOJA\nCompre Pokébolas e itens com o vendedor."},
+    {d:[8,36],  txt:"🏪 LOJA\nCompre Esferas e itens com o vendedor."},
     {d:[43,36], txt:"🏥 CENTRO POKÉMON\nUse [E] no computador para curar TODA a equipe de graça."},
   ];
   const livre=(x,y)=> MAPA[y] && MAPA[y][x]!==undefined && !isInHouse(x,y)
@@ -1194,7 +1194,7 @@ let fachadaExterna=new Set();
 
 // (Vegetação aleatória removida — árvores/flores não são mais geradas automaticamente.)
 
-// Pokébolas espalhadas no chão (item coletável)
+// Esferas espalhadas no chão (item coletável)
 let bolasNoChao=[];
 (function semearBolas(){
   let tentativas=0;
@@ -1207,11 +1207,11 @@ let bolasNoChao=[];
     }
   }
 })();
-// pokébola fixa pedida em B47 (col 1, row 46) — se o tile estiver livre
+// esfera fixa pedida em B47 (col 1, row 46) — se o tile estiver livre
 (function(){ let c=1,r=46; if(MAPA[r]?.[c]===0 && !bolasNoChao.some(b=>b.x===c&&b.y===r)) bolasNoChao.push({x:c,y:r}); })();
-// pokébolas pedidas: AL36 (col 37,row 35) e B12 (col 1,row 11)
+// esferas pedidas: AL36 (col 37,row 35) e B12 (col 1,row 11)
 [[37,35],[1,11]].forEach(([c,r])=>{ let v=MAPA[r]?.[c]; if([0,10,33,5,31].includes(v) && !bolasNoChao.some(b=>b.x===c&&b.y===r)) bolasNoChao.push({x:c,y:r}); });
-// pokébola AH33 (col 33,row 32 — fica no mato)
+// esfera AH33 (col 33,row 32 — fica no mato)
 (function(){ let c=33,r=32; if(MAPA[r]?.[c]!==undefined && !bolasNoChao.some(b=>b.x===c&&b.y===r)) bolasNoChao.push({x:c,y:r}); })();
 
 /* ============ NPCS / TRAINERS / WANDERERS ============ */
@@ -1423,7 +1423,7 @@ setInterval(()=>{
 let npcsInternos=[
   {nome:'PROF',x:8,y:7,cor:'c-branco',spriteCustom:'professor',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos.\n\nIMPORTANTE: quando seus Pokémon ficarem feridos ou desmaiarem, vá ao CENTRO POKÉMON (a casa de teto vermelho) e use [E] no computador de cura para recuperar TODA a equipe de graça. Se todos desmaiarem, você não poderá batalhar até curá-los lá!"},
   {nome:'Vendedor',x:43,y:40,cor:'c-azul-r',msg:"Vendedor de Pokémon:\nCompro e vendo Pokémon! As ofertas mudam a cada 5 minutos."},
-  {nome:'Vendedor2',x:8,y:41,cor:'c-verde',dir:'cima',msg:"Vendedor:\nPokébolas a bom preço, freguês!"},
+  {nome:'Vendedor2',x:8,y:41,cor:'c-verde',dir:'cima',msg:"Vendedor:\nEsferas a bom preço, freguês!"},
   // Casa Aconchego (BH32..BN36): dois moradores em volta da mesa de centro
   {nome:'Morador',x:61,y:33,cor:'c-rosa',dir:'direita',msg:"Moradora:\nQue bom receber visita! Senta um pouco com a gente."},
   {nome:'Morador2',x:63,y:33,cor:'c-azul-j',dir:'esquerda',msg:"Morador:\nEsta vila é tranquila. Um bom chá e boa conversa é tudo que precisamos."}
@@ -2406,12 +2406,12 @@ function desenharMundo(){
   }
   divMapa.appendChild(frag);
 
-  // Pokébolas dos iniciais SOBRE A MESA DO PROFESSOR (lado a lado)
+  // Esferas dos iniciais SOBRE A MESA DO PROFESSOR (lado a lado)
   if(!inicialEscolhido && casaEm(player.x,player.y) && casaEm(player.x,player.y).tipo==='lab'){
     STARTERS.forEach(s=>{let b=document.createElement('div'); b.className='item-bola';
       b.innerHTML=ICONE_BOLA_HTML; b.style.left=(s.x*TILE)+'px'; b.style.top=(s.y*TILE)+'px'; divMapa.appendChild(b);});
   }
-  // Pokébolas espalhadas no chão (escondidas quando o jogador está dentro de casa)
+  // Esferas espalhadas no chão (escondidas quando o jogador está dentro de casa)
   bolasNoChao.forEach(b=>{ if(!personagemVisivel(b.x,b.y,playerInHouse))return;
     if(!b.tipo) b.tipo=sortearTipoBola();   // cada bola tem a sua cor (persiste no save)
     let el=document.createElement('div'); el.className='item-bola bobbing';
@@ -2594,9 +2594,9 @@ const STORY=`Bem-vindo a NOVA REGION.
 
 Você acordou tarde — de novo. Lá fora, o sol já bate sobre a vila e o rio corre sob a velha ponte de madeira.
 
-No laboratório, o Prof. Cedro deixou três Pokébolas sobre a mesa. Caminhe até elas e escolha seu parceiro com [E].
+No laboratório, o Prof. Cedro deixou três Esferas sobre a mesa. Caminhe até elas e escolha seu parceiro com [E].
 
-Há treinadores espalhados pelas trilhas, Pokébolas perdidas no chão, uma Pokémart para reabastecer e um Líder de Ginásio a leste que ninguém venceu. Cada vitória rende dinheiro.
+Há treinadores espalhados pelas trilhas, Esferas perdidas no chão, uma Pokémart para reabastecer e um Líder de Ginásio a leste que ninguém venceu. Cada vitória rende dinheiro.
 
 A jornada para completar a Pokédex começa agora.`;
 
@@ -2607,7 +2607,7 @@ function comecarJornada(){
   if(campo && campo.value.trim()){ nomeJogador=campo.value.trim(); nomeEditadoManual=true; }
   else if(!nomeJogador) nomeJogador=NOMES_PERSONAGEM[PLAYER_GENERO]||'';
   $('intro').style.display='none'; jogoIniciado=true; iniciarAudio();
-  mostrarAviso("Prof. Cedro:\n"+nomeEfetivo()+", vá até a mesa e use [E] em uma das três Pokébolas para escolher seu parceiro!"); }
+  mostrarAviso("Prof. Cedro:\n"+nomeEfetivo()+", vá até a mesa e use [E] em uma das três Esferas para escolher seu parceiro!"); }
 function continuarJogo(){
   if(!carregarJogo()){ mostrarAviso("Nenhum jogo salvo encontrado."); return; }
   $('intro').style.display='none'; jogoIniciado=true; iniciarAudio();
@@ -2656,12 +2656,12 @@ function interagirBotaoE(){
   // Pokémon selvagem fixo à frente: batalha com [E]
   let pfa=pokemonsFixos.find(p=>!p.derrotado && (p.tiles? p.tiles.some(t=>naFrente(t[0],t[1])) : naFrente(p.x,p.y)));
   if(pfa && inicialEscolhido){ iniciarBatalhaFixo(pfa); return; }
-  // Escolher inicial: encarando uma Pokébola/mesa na mesa do professor
+  // Escolher inicial: encarando uma Esfera/mesa na mesa do professor
   if(!inicialEscolhido){
     let s=STARTERS.find(s=>naFrente(s.x,s.y));
     if(s || (tf===6 && casaEm(fx,fy)&&casaEm(fx,fy).tipo==='lab')){ abrirStarterPopup(); return; }
   }
-  // Coletar Pokébola à frente
+  // Coletar Esfera à frente
   let idx=bolasNoChao.findIndex(b=>naFrente(b.x,b.y));
   if(idx>=0){coletarBola(idx); return;}
   // Balconista à frente
@@ -2696,13 +2696,13 @@ function interagirBotaoE(){
     mostrarAviso("🚂 Estação de Trem:\nO trem parte para a próxima cidade!", ()=>transicaoRegiao('rota','Próxima Cidade',ENTRADAS.rota));
     return;
   }
-  // Baú à frente: dá dinheiro + 2 Pokébolas e fica aberto
+  // Baú à frente: dá dinheiro + 2 Esferas e fica aberto
   if(tf===85){
     let ganho=300+Math.floor(Math.random()*201); dinheiro+=ganho;
     bolsa.great=(bolsa.great||0)+2;
     MAPA[fy][fx]=86; atualizarChips(); desenharMundo();
     sfx(700,0.1); setTimeout(()=>sfx(950,0.12),100);
-    mostrarAviso("🎁 Você abriu um baú!\nEncontrou ₽"+ganho+" e 2 Great Balls 🔵!");
+    mostrarAviso("🎁 Você abriu um baú!\nEncontrou ₽"+ganho+" e 2 Esferas Grandes 🔵!");
     return;
   }
 }
@@ -2718,7 +2718,7 @@ function curarNoPc(){if(equipeAtiva.length===0){mostrarAviso("💻 PC Pokémon:\
   mostrarAviso("💻 PC Pokémon:\nSua equipe foi totalmente curada!");}
 function escolherInicial(nome){inicialEscolhido=true; let pkm=criarInstanciaPokemon(nome,5); equipeAtiva.push(pkm); definirCompanheiro(nome);
   registroDex[nome]='capturado'; dinheiro=500; fecharStarterPopup(); desenharMundo(); atualizarChips(); sfx(600,0.1); setTimeout(()=>sfx(800,0.14),120);
-  mostrarAviso(`Você escolheu ${nome}!\n\nO Prof. te deu ₽500 e 5 Poké Balls. Saia pela porta abaixo e explore Nova Region.`);}
+  mostrarAviso(`Você escolheu ${nome}!\n\nO Prof. te deu ₽500 e 5 Esferas. Saia pela porta abaixo e explore Nova Region.`);}
 
 let starterPopupAberto=false;
 function abrirStarterPopup(){
@@ -2741,47 +2741,55 @@ function abrirStarterPopup(){
 function fecharStarterPopup(){ starterPopupAberto=false; $('modal-starter').style.display='none'; }
 
 /* ============ LOJA ============ */
-function abrirLoja(){
+// ====== LOJA COM CARRINHO ======
+// O jogador ajusta a quantidade de cada esfera (− / +), vê o total e clica em Comprar.
+let lojaPrecos=null;        // preços ativos da loja aberta
+let carrinho={};            // {tipo: quantidade}
+const PRECOS_BALCAO={poke:100, great:300, ultra:500, premier:1200, master:5000};
+function _precosPadrao(){ let p={}; ORDEM_BOLAS.forEach(k=>p[k]=TIPOS_BOLA[k].preco); return p; }
+function abrirLoja(){ abrirLojaCart(_precosPadrao()); }
+function abrirLojaBalcao(){ abrirLojaCart(PRECOS_BALCAO); }
+function abrirLojaCart(precos){
+  lojaPrecos=precos; carrinho={}; ORDEM_BOLAS.forEach(k=>carrinho[k]=0);
   emLoja=true; $('loja-dinheiro').innerText=`₽ ${dinheiro}`;
   let cont=$('loja-itens'); cont.innerHTML='';
-  ORDEM_BOLAS.forEach(k=>{let b=TIPOS_BOLA[k];
+  ORDEM_BOLAS.forEach(k=>{let b=TIPOS_BOLA[k]; let preco=precos[k];
     let row=document.createElement('div'); row.className='card-pkm';
     row.innerHTML=`<div class="meta-l"><span style="font-size:20px">${b.icone}</span>
-      <div><div class="nm">${b.nome}</div><div class="sub">tem: ${bolsa[k]} · taxa ×${b.mult>900?'∞':b.mult}</div></div></div>
-      <button class="btn-acao" id="buy-${k}" style="height:34px; padding:0 12px;">₽${b.preco}</button>`;
+      <div><div class="nm">${b.nome} · <span style="color:var(--gold)">₽${preco}</span></div>
+      <div class="sub">tem: ${bolsa[k]} · taxa ×${b.mult>900?'∞':b.mult}</div></div></div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="mudarCarrinho('${k}',-1)">−</button>
+        <span class="qty-num" id="qty-${k}">0</span>
+        <button class="qty-btn" onclick="mudarCarrinho('${k}',1)">+</button>
+      </div>`;
     cont.appendChild(row);
-    $('buy-'+k).onclick=()=>comprarBola(k);
   });
+  atualizarTotalLoja();
   $('modal-loja').style.display='flex';
 }
-function comprarBola(k){let b=TIPOS_BOLA[k];
-  if(dinheiro<b.preco){sfx(160,0.15,'sawtooth'); $('loja-dinheiro').innerText=`Saldo insuficiente!`;
-    setTimeout(()=>$('loja-dinheiro').innerText=`₽ ${dinheiro}`,900); return;}
-  dinheiro-=b.preco; bolsa[k]++; sfx(740,0.08); atualizarChips(); abrirLoja();
+function mudarCarrinho(k,delta){
+  carrinho[k]=Math.max(0,(carrinho[k]||0)+delta);
+  let el=$('qty-'+k); if(el) el.innerText=carrinho[k];
+  sfx(delta>0?620:420,0.04);
+  atualizarTotalLoja();
+}
+function totalCarrinho(){ let t=0; for(let k in carrinho) t+=carrinho[k]*((lojaPrecos&&lojaPrecos[k])||0); return t; }
+function atualizarTotalLoja(){
+  let t=totalCarrinho(); let el=$('loja-total');
+  if(el) el.innerText=`Carrinho: ₽ ${t}`+(t>dinheiro?'  (saldo insuficiente)':'');
+  let btn=$('loja-comprar'); if(btn){ let ok=t>0 && t<=dinheiro; btn.disabled=!ok; btn.style.opacity=ok?'1':'.45'; }
+}
+function comprarCarrinho(){
+  let t=totalCarrinho(); if(t<=0) return;
+  if(dinheiro<t){ sfx(160,0.15,'sawtooth'); let el=$('loja-total'); if(el) el.innerText='Saldo insuficiente!'; return; }
+  dinheiro-=t; let resumo=[];
+  ORDEM_BOLAS.forEach(k=>{ if(carrinho[k]>0){ bolsa[k]+=carrinho[k]; resumo.push(`${carrinho[k]}× ${TIPOS_BOLA[k].nome}`); } });
+  sfx(740,0.08); setTimeout(()=>sfx(940,0.1),100); atualizarChips();
+  abrirLojaCart(lojaPrecos);  // reabre a loja com o carrinho zerado e saldo atualizado
+  let dm=$('loja-dinheiro'); if(dm){ dm.innerText=`✅ Comprado! ₽ ${dinheiro}`; setTimeout(()=>{ if(emLoja&&dm) dm.innerText=`₽ ${dinheiro}`; },1600); }
 }
 function fecharLoja(){$('modal-loja').style.display='none'; emLoja=false; lojaPrecos=null;}
-// Loja separada do balcão da casa 2 (preços próprios)
-let lojaPrecos=null;
-const PRECOS_BALCAO={poke:100, great:300, ultra:500, premier:1200, master:5000};
-function abrirLojaBalcao(){
-  lojaPrecos=PRECOS_BALCAO;
-  emLoja=true; $('loja-dinheiro').innerText=`₽ ${dinheiro}`;
-  let cont=$('loja-itens'); cont.innerHTML='';
-  ORDEM_BOLAS.forEach(k=>{let b=TIPOS_BOLA[k]; let preco=lojaPrecos[k];
-    let row=document.createElement('div'); row.className='card-pkm';
-    row.innerHTML=`<div class="meta-l"><span style="font-size:20px">${b.icone}</span>
-      <div><div class="nm">${b.nome}</div><div class="sub">tem: ${bolsa[k]} · taxa ×${b.mult>900?'∞':b.mult}</div></div></div>
-      <button class="btn-acao" id="buy-${k}" style="height:34px; padding:0 12px;">₽${preco}</button>`;
-    cont.appendChild(row);
-    $('buy-'+k).onclick=()=>comprarBolaBalcao(k);
-  });
-  $('modal-loja').style.display='flex';
-}
-function comprarBolaBalcao(k){let preco=PRECOS_BALCAO[k];
-  if(dinheiro<preco){sfx(160,0.15,'sawtooth'); $('loja-dinheiro').innerText=`Saldo insuficiente!`;
-    setTimeout(()=>$('loja-dinheiro').innerText=`₽ ${dinheiro}`,900); return;}
-  dinheiro-=preco; bolsa[k]++; sfx(740,0.08); atualizarChips(); abrirLojaBalcao();
-}
 
 /* ====== LOJA DE POKÉMON (balcão do Centro / casa 3) ====== */
 let ofertasPokemon=[];          // ofertas de compra atuais
@@ -2902,10 +2910,10 @@ function forcarMovimento(letra){
   if(npcsInternos.some(n=>n.x===px&&n.y===py&&isInHouse(px,py)))return;
   if(balconista.x===px&&balconista.y===py)return; // não atravessa a balconista
   if(!isInHouse(px,py) && npcsCampo.some(n=>n.x===px&&n.y===py))return; // não atravessa NPCs de campo
-  if(bolasNoChao.some(b=>b.x===px&&b.y===py))return; // pokébola é pathblocker (precisa pegar com [E])
+  if(bolasNoChao.some(b=>b.x===px&&b.y===py))return; // esfera é pathblocker (precisa pegar com [E])
   // Antes de escolher o inicial: pode andar dentro do laboratório, mas não sair.
   if(!inicialEscolhido && !isInHouse(px,py)){
-    mostrarAviso("Escolha primeiro uma das Pokébolas na mesa do Prof. Cedro (use [E]).");
+    mostrarAviso("Escolha primeiro uma das Esferas na mesa do Prof. Cedro (use [E]).");
     return;
   }
   // Treinador no caminho: bloqueia. Se ainda não foi derrotado, inicia batalha.
@@ -3098,13 +3106,13 @@ function atualizarHps(){
   $('bar-xp-jogador').style.width=Math.min(100,pkmAtivoJogador.xp/pkmAtivoJogador.xpNecessario*100)+'%';
 }
 function menuPrincipal(){subMenuAtaques=false; subMenuBolas=false;
-  let bola=batalhaTreinador?`<button class="btn-acao" disabled><span class="atalho">A</span> Bola</button>`
-    :`<button class="btn-acao btn-gold" onclick="menuBolas()"><span class="atalho">A</span> Bola</button>`;
+  let bola=batalhaTreinador?`<button class="btn-acao" disabled><span class="atalho">A</span> Esfera</button>`
+    :`<button class="btn-acao btn-gold" onclick="menuBolas()"><span class="atalho">A</span> Esfera</button>`;
   painelBotoes.innerHTML=`<button class="btn-acao" onclick="menuAtaques()"><span class="atalho">Q</span> Lutar</button>
     <button class="btn-acao btn-ghost" onclick="abrirPartyBatalha()"><span class="atalho">W</span> Pokémon</button>
     ${bola}<button class="btn-acao btn-ghost" onclick="fugirBatalha()"><span class="atalho">S</span> Fugir</button>`;}
 function menuBolas(){
-  if(totalBolas()===0){textoBatalha.innerText="Você não tem nenhuma Pokébola! Compre na Pokémart."; return;}
+  if(totalBolas()===0){textoBatalha.innerText="Você não tem nenhuma Esfera! Compre na Pokémart."; return;}
   subMenuAtaques=false; subMenuBolas=true;
   painelBotoes.innerHTML=''; let at=['Q','W','A','S'];
   let disp=ORDEM_BOLAS.filter(k=>bolsa[k]>0).slice(0,3);
@@ -3395,7 +3403,7 @@ function receberXp(qtd,lider,premio,nomeTreinador){
 }
 async function usarPokebola(tipoBola){
   tipoBola=tipoBola||'poke';
-  if(bolsa[tipoBola]<=0){textoBatalha.innerText="Você não tem essa bola."; return;}
+  if(bolsa[tipoBola]<=0){textoBatalha.innerText="Você não tem essa esfera."; return;}
   bolsa[tipoBola]--; let info=TIPOS_BOLA[tipoBola];
   painelBotoes.innerHTML=''; subMenuAtaques=false; bolaAnimada.classList.add('voo-bola'); sfx(440,0.1);
   setTimeout(()=>{$('img-inimigo').style.display='none'; txtCaptura.style.display='block';},800);

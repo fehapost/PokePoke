@@ -6,9 +6,9 @@
 <title>NOVA REGION — Pokémon Engine</title>
 <meta name="description" content="Explore Nova Region, capture Pokémon e enfrente Ginásios neste jogo HTML5.">
 <!-- Favicon / ícone -->
-<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=15">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=15">
-<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=15">
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=16">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=16">
+<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=16">
 <!-- Compartilhamento (WhatsApp / Open Graph) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NOVA REGION — Pokémon Engine">
@@ -17,7 +17,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/estilo.css?v=15">
+<link rel="stylesheet" href="css/estilo.css?v=16">
 </head>
 <body>
 <div class="app">
@@ -228,7 +228,7 @@
       <button class="btn-acao" id="btn-continuar" onclick="continuarJogo()" style="display:none; background:#5b8cff">Continuar (jogo salvo)</button>
       <button class="btn-acao" id="btn-comecar" onclick="comecarJornada()">Entrar no laboratório</button>
     </div>
-    <div class="hint" id="intro-hint">Depois, vá até a mesa do Prof. Cedro e use [E] em uma Pokébola.</div>
+    <div class="hint" id="intro-hint">Depois, vá até a mesa do Prof. Cedro e use [E] em uma Esfera.</div>
   </div>
 </div>
 
@@ -241,8 +241,10 @@
     </div>
     <p style="margin-top:0">Bem-vindo! No que posso ajudar?</p>
     <div id="loja-itens" style="display:flex; flex-direction:column; gap:8px; margin:10px 0"></div>
+    <div id="loja-total" style="text-align:right; font-weight:800; font-size:15px; margin:4px 2px 8px; color:var(--gold)">Carrinho: ₽ 0</div>
     <div class="row-btns">
-      <button class="btn-acao btn-ghost" onclick="fecharLoja()">Sair da loja</button>
+      <button class="btn-acao btn-ghost" onclick="fecharLoja()">Sair</button>
+      <button class="btn-acao" id="loja-comprar" onclick="comprarCarrinho()">🛒 Comprar</button>
     </div>
   </div>
 </div>
@@ -313,7 +315,7 @@
   </div>
 </div>
 
-<script src="js/sprites.js?v=15"></script>
-<script src="js/jogo.js?v=15"></script>
+<script src="js/sprites.js?v=16"></script>
+<script src="js/jogo.js?v=16"></script>
 </body>
 </html>
