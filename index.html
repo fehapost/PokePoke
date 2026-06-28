@@ -6,9 +6,9 @@
 <title>NOVA REGION — Pokémon Engine</title>
 <meta name="description" content="Explore Nova Region, capture Pokémon e enfrente Ginásios neste jogo HTML5.">
 <!-- Favicon / ícone -->
-<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=17">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=17">
-<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=17">
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=18">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=18">
+<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=18">
 <!-- Compartilhamento (WhatsApp / Open Graph) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NOVA REGION — Pokémon Engine">
@@ -17,20 +17,24 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/estilo.css?v=17">
+<link rel="stylesheet" href="css/estilo.css?v=18">
 </head>
 <body>
 <div class="app">
   <div class="game-row">
    <!-- Controls (left column) -->
    <div id="controles">
-    <!-- D-pad (movimento) -->
+    <!-- D-pad + ações (Q ↑ E / ← Espaço → / ↓) -->
     <div class="d-pad">
-      <div></div><button class="btn-dir" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button><div></div>
+      <button class="btn-dir alt" onclick="alternarParty()" title="Time">Q</button>
+      <button class="btn-dir" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button>
+      <button class="btn-dir act2" onclick="interagirBotaoE()" title="Ação">E</button>
       <button class="btn-dir" ontouchstart="forcarMovimento('a')" onclick="forcarMovimento('a')">←</button>
-      <button class="btn-dir center" onclick="interagirBotaoE()">E</button>
+      <button class="btn-dir alt" onclick="apertarEspaco()" title="Espaço">Esp</button>
       <button class="btn-dir" ontouchstart="forcarMovimento('d')" onclick="forcarMovimento('d')">→</button>
-      <div></div><button class="btn-dir" ontouchstart="forcarMovimento('s')" onclick="forcarMovimento('s')">↓</button><div></div>
+      <div></div>
+      <button class="btn-dir" ontouchstart="forcarMovimento('s')" onclick="forcarMovimento('s')">↓</button>
+      <div></div>
     </div>
    </div>
    <div id="viewport">
@@ -135,21 +139,17 @@
        <span class="chip" id="chip-dinheiro">₽ 0</span>
        <span class="chip" id="chip-dex">Dex: 0</span>
      </div>
-     <!-- Botões de ação estilo controle (movidos da esquerda) -->
+     <!-- Botões de ação (Dex / Visual / Mapa / Mochila) -->
      <div class="vg-acoes">
-       <div class="vg-ab">
-         <div class="vg-btn"><button class="btn-circ act" onclick="interagirBotaoE()">E</button><span>Ação</span></div>
-         <div class="vg-btn"><button class="btn-circ back" onclick="voltarBotaoB()">B</button><span>Voltar</span></div>
-       </div>
        <div class="vg-cluster">
-         <div class="vg-btn"><button class="btn-circ gold" onclick="alternarParty()">Q</button><span>Time</span></div>
          <div class="vg-btn"><button class="btn-circ red" onclick="alternarPokedex()">O</button><span>Dex</span></div>
          <div class="vg-btn"><button class="btn-circ vis" onclick="abrirCustom()">C</button><span>Visual</span></div>
          <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
+         <div class="vg-btn"><button class="btn-circ bag" onclick="abrirMochila()">R</button><span>Mochila</span></div>
        </div>
+       <!-- Botão Opções redondo (abre o menu com Time/Dex/Visual/Mapa/Salvar + áudio) -->
+       <div class="vg-btn"><button class="btn-circ opcoes" onclick="alternarConfig()">⚙</button><span>Opções</span></div>
      </div>
-     <!-- Botão Opções redondo (abre o menu com Time/Dex/Visual/Mapa/Salvar + áudio) -->
-     <div class="vg-btn" style="margin-top:auto"><button class="btn-circ opcoes" onclick="alternarConfig()">⚙</button><span>Opções</span></div>
    </aside>
   </div>
 
@@ -186,6 +186,20 @@
     </div>
     <div class="row-btns">
       <button class="btn-acao btn-ghost" onclick="alternarConfig()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mochila (R) -->
+<div id="modal-mochila" class="modal">
+  <div class="sheet" style="max-width:420px">
+    <div class="overlay-head" style="margin-bottom:8px">
+      <h2 style="color:var(--gold)">🎒 MOCHILA</h2>
+      <span class="tag" id="mochila-dinheiro">₽ 0</span>
+    </div>
+    <div id="mochila-itens" style="display:flex; flex-direction:column; gap:8px; margin:10px 0"></div>
+    <div class="row-btns">
+      <button class="btn-acao btn-ghost" onclick="fecharMochila()">Fechar</button>
     </div>
   </div>
 </div>
@@ -314,7 +328,7 @@
   </div>
 </div>
 
-<script src="js/sprites.js?v=17"></script>
-<script src="js/jogo.js?v=17"></script>
+<script src="js/sprites.js?v=18"></script>
+<script src="js/jogo.js?v=18"></script>
 </body>
 </html>

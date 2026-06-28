@@ -156,6 +156,32 @@ let audioCtx=null, loopAudio=null, volMestre=0.5, mutado=false;
 function alternarConfig(){const m=$('modal-configuracoes'); m.style.display=m.style.display==='flex'?'none':'flex';}
 // fecha o menu Opções e executa a ação escolhida (Time/Dex/Visual/Mapa/Salvar)
 function opcaoMenu(fn){ $('modal-configuracoes').style.display='none'; if(typeof fn==='function') fn(); }
+// botão Espaço do d-pad: mesmo efeito da barra de espaço (confirma encontro / inicia batalha no mato)
+function apertarEspaco(){
+  if(!jogoIniciado||mostrandoNotificacao) return;
+  if(esperandoEspaco){ if(window.iniciarBatalhaAgora) window.iniciarBatalhaAgora(); return; }
+  if(emBatalha||emParty||emPokedex||emLoja||emCutscene) return;
+  iniciarBatalhaSelvagem(false);
+}
+// ===== Mochila (tecla R): mostra as esferas e itens do jogador =====
+let emMochila=false;
+function abrirMochila(){
+  if(!jogoIniciado||mostrandoNotificacao||emBatalha||emCutscene) return;
+  if(emMochila){ fecharMochila(); return; }
+  emMochila=true; $('mochila-dinheiro').innerText=`₽ ${dinheiro}`;
+  let cont=$('mochila-itens'); cont.innerHTML='';
+  let temItem=false;
+  ORDEM_BOLAS.forEach(k=>{ let qt=bolsa[k]||0; if(qt<=0) return; temItem=true; let b=TIPOS_BOLA[k];
+    let row=document.createElement('div'); row.className='card-pkm';
+    row.innerHTML=`<div class="meta-l"><span style="font-size:20px">${b.icone}</span>
+      <div><div class="nm">${b.nome}</div><div class="sub">taxa de captura ×${b.mult>900?'∞':b.mult}</div></div></div>
+      <span class="tag" style="font-weight:800; font-size:14px">×${qt}</span>`;
+    cont.appendChild(row);
+  });
+  if(!temItem){ cont.innerHTML=`<div style="color:var(--muted); text-align:center; padding:14px 0">Sua mochila está vazia.\nCompre Esferas na Pokémart.</div>`; }
+  $('modal-mochila').style.display='flex';
+}
+function fecharMochila(){ $('modal-mochila').style.display='none'; emMochila=false; }
 // ===== Minimapa =====
 function corMinimapa(v){
   if(v===13||v===84)return '#3a82e8';            // rio / ponte quebrada
@@ -2633,6 +2659,7 @@ function voltarBotaoB(){
   }
   // Fora da batalha: fecha o que estiver aberto
   if(mostrandoNotificacao){ fecharNotificacao(); return; }
+  if(emMochila){ fecharMochila(); return; }
   if(typeof emLoja!=='undefined' && emLoja){ fecharLoja(); return; }
   if($('modal-mapa') && $('modal-mapa').style.display==='flex'){ fecharMapa(); return; }
   if($('modal-custom') && $('modal-custom').style.display==='flex'){ fecharCustom(); return; }
@@ -2648,7 +2675,7 @@ function tileFrente(){
 }
 function interagirBotaoE(){
   if(mostrandoNotificacao){fecharNotificacao(); return;}
-  if(emBatalha||emParty||emPokedex||emLoja||!jogoIniciado||emCutscene)return;
+  if(emBatalha||emParty||emPokedex||emLoja||!jogoIniciado||emCutscene||emMochila)return;
   // SÓ interage com o tile/entidade PARA ONDE o jogador está virado
   const F=tileFrente(); const fx=F.x, fy=F.y;
   const naFrente=(x,y)=> x===fx && y===fy;
@@ -2882,7 +2909,7 @@ function venderPokemon(idx){
 /* ============ MOVEMENT ============ */
 const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82,83,84,85,87];
 function forcarMovimento(letra){
-  if(!jogoIniciado||mostrandoNotificacao||emLoja||emCutscene)return;
+  if(!jogoIniciado||mostrandoNotificacao||emLoja||emCutscene||emMochila)return;
   let agora=Date.now(); if(agora-ultimoPasso<INTERVALO)return; ultimoPasso=agora;
   if(emBatalha||emParty||emPokedex||esperandoEspaco)return;
   let px=player.x,py=player.y;
@@ -3568,7 +3595,9 @@ document.documentElement.addEventListener('keydown',e=>{
   // Pop-up de inicial: atalhos Q W E R
   if(starterPopupAberto){ let k=e.key.toLowerCase();
     let map={q:0,w:1,e:2,r:3}; if(k in map && STARTERS[map[k]]){ escolherInicial(STARTERS[map[k]].nome); } return; }
-  if(e.key==='Escape'){ if($('modal-mapa').style.display==='flex'){fecharMapa();return;} if(emLoja){fecharLoja();return;} if($('modal-custom').style.display==='flex'){fecharCustom();return;} if(emParty){fecharParty();return;} if(emPokedex){fecharPokedex();return;} }
+  if(e.key==='Escape'){ if($('modal-mapa').style.display==='flex'){fecharMapa();return;} if(emMochila){fecharMochila();return;} if(emLoja){fecharLoja();return;} if($('modal-custom').style.display==='flex'){fecharCustom();return;} if(emParty){fecharParty();return;} if(emPokedex){fecharPokedex();return;} }
+  // Com a mochila aberta: R/B/E fecham; outras teclas ficam bloqueadas
+  if(emMochila){ if(['r','b','e'].includes((e.key||'').toLowerCase())) fecharMochila(); return; }
   if($('modal-mapa').style.display==='flex'){ if((e.key||'').toLowerCase()==='m')fecharMapa(); return; }
   if((e.key||'').toLowerCase()==='m'){ abrirMapa(); return; }
   if((e.key||'').toLowerCase()==='g'){ alternarGrade(); return; }   // liga/desliga a grade de coordenadas
@@ -3586,12 +3615,13 @@ document.documentElement.addEventListener('keydown',e=>{
   else if(k==='q')alternarParty();
   else if(k==='o')alternarPokedex();
   else if(k==='c')abrirCustom();
+  else if(k==='r')abrirMochila();
   else if(['w','a','s','d'].includes(k)){ teclasMov.add(k); forcarMovimento(k); }
 });
 document.documentElement.addEventListener('keyup',e=>{ let k=(e.key||'').toLowerCase(); if(teclasMov.has(k))teclasMov.delete(k); });
 // Loop de movimento contínuo: enquanto a tecla estiver pressionada, anda em ritmo fluido
 setInterval(()=>{
-  if(!jogoIniciado||emBatalha||emParty||emPokedex||emLoja||esperandoEspaco||mostrandoNotificacao)return;
+  if(!jogoIniciado||emBatalha||emParty||emPokedex||emLoja||emMochila||esperandoEspaco||mostrandoNotificacao)return;
   if($('modal-mapa')?.style.display==='flex'||$('modal-custom')?.style.display==='flex')return;
   if(teclasMov.size===0)return;
   // prioridade: última direção pressionada (usa qualquer uma do set)

@@ -15,8 +15,9 @@ body{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   min-height:100vh; padding:18px; -webkit-tap-highlight-color:transparent;
 }
-.app{display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:940px}
-.game-row{display:flex; gap:14px; align-items:flex-start; width:100%; justify-content:center}
+.app{display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:940px;
+  transform:translateY(8vh)}   /* desce o aplicativo ~10% na tela */
+.game-row{display:flex; gap:14px; align-items:center; width:100%; justify-content:center}   /* controles centralizados na vertical */
 
 /* Right sidebar */
 .sidebar{width:180px; display:flex; flex-direction:column; gap:12px;
@@ -634,6 +635,7 @@ body{
 /* Layout estilo controle: d-pad na esquerda; cluster de ações foi para a direita */
 #controles{justify-content:center}
 .vg-acoes{display:flex; flex-direction:column; gap:12px; align-items:center; width:100%}
+.sidebar .vg-acoes{margin-top:auto; margin-bottom:6px}   /* desce os botões da direita */
 .vg-ab{display:flex; gap:16px; justify-content:center}
 .vg-cluster{display:grid; grid-template-columns:repeat(2,auto); gap:8px 16px; justify-items:center}
 .vg-btn{display:flex; flex-direction:column; align-items:center; gap:3px}
@@ -664,6 +666,10 @@ body{
   font-weight:700; cursor:pointer; display:grid; place-items:center; font-size:13px}
 .btn-dir:active{background:var(--accent); color:#fff}
 .btn-dir.center{background:#0c1220; color:var(--accent)}
+/* botões de ação dentro do d-pad: Q/Espaço (destaque) e E (ação) */
+.btn-dir.alt{background:#222a3d; color:var(--gold); font-weight:800; font-size:12px}
+.btn-dir.act2{background:#0c1220; color:var(--accent); font-weight:800; font-size:15px}
+.btn-circ.bag{background:#c08a3e; color:#2a1c08; border-color:#c08a3e}
 
 /* Config / intro modals */
 .modal{position:absolute; inset:0; z-index:5000; display:none; align-items:center; justify-content:center;
