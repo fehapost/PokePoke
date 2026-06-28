@@ -154,6 +154,8 @@ function carregarJogo(){
 /* ============ AUDIO ============ */
 let audioCtx=null, loopAudio=null, volMestre=0.5, mutado=false;
 function alternarConfig(){const m=$('modal-configuracoes'); m.style.display=m.style.display==='flex'?'none':'flex';}
+// fecha o menu Opções e executa a ação escolhida (Time/Dex/Visual/Mapa/Salvar)
+function opcaoMenu(fn){ $('modal-configuracoes').style.display='none'; if(typeof fn==='function') fn(); }
 // ===== Minimapa =====
 function corMinimapa(v){
   if(v===13||v===84)return '#3a82e8';            // rio / ponte quebrada

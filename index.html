@@ -6,9 +6,9 @@
 <title>NOVA REGION — Pokémon Engine</title>
 <meta name="description" content="Explore Nova Region, capture Pokémon e enfrente Ginásios neste jogo HTML5.">
 <!-- Favicon / ícone -->
-<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=16">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=16">
-<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=16">
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=17">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=17">
+<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=17">
 <!-- Compartilhamento (WhatsApp / Open Graph) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NOVA REGION — Pokémon Engine">
@@ -17,28 +17,14 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/estilo.css?v=16">
+<link rel="stylesheet" href="css/estilo.css?v=17">
 </head>
 <body>
 <div class="app">
   <div class="game-row">
    <!-- Controls (left column) -->
    <div id="controles">
-    <!-- Botões de ação estilo controle (E/B + cluster Q O C M + Música) -->
-    <div class="vg-acoes">
-      <div class="vg-ab">
-        <div class="vg-btn"><button class="btn-circ act" onclick="interagirBotaoE()">E</button><span>Ação</span></div>
-        <div class="vg-btn"><button class="btn-circ back" onclick="voltarBotaoB()">B</button><span>Voltar</span></div>
-      </div>
-      <div class="vg-cluster">
-        <div class="vg-btn"><button class="btn-circ gold" onclick="alternarParty()">Q</button><span>Time</span></div>
-        <div class="vg-btn"><button class="btn-circ red" onclick="alternarPokedex()">O</button><span>Dex</span></div>
-        <div class="vg-btn"><button class="btn-circ vis" onclick="abrirCustom()">C</button><span>Visual</span></div>
-        <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
-      </div>
-      <div class="vg-btn"><button class="btn-circ music" onclick="alternarConfig()">🎵</button><span>Música</span></div>
-    </div>
-    <!-- D-pad (mais embaixo) -->
+    <!-- D-pad (movimento) -->
     <div class="d-pad">
       <div></div><button class="btn-dir" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button><div></div>
       <button class="btn-dir" ontouchstart="forcarMovimento('a')" onclick="forcarMovimento('a')">←</button>
@@ -149,18 +135,25 @@
        <span class="chip" id="chip-dinheiro">₽ 0</span>
        <span class="chip" id="chip-dex">Dex: 0</span>
      </div>
-     <div class="side-actions">
-       <button class="side-btn s-gold" onclick="alternarParty()">★ Time <small>P</small></button>
-       <button class="side-btn s-red" onclick="alternarPokedex()">📕 Pokédex <small>O</small></button>
-       <button class="side-btn s-green" onclick="abrirCustom()">🎨 Visual <small>C</small></button>
-       <button class="side-btn s-purple" onclick="abrirMapa()">🗺 Ver Mapa <small>M</small></button>
-       <button class="side-btn s-blue" onclick="salvarJogo()">💾 Salvar</button>
-       <button class="side-btn" onclick="alternarConfig()">⚙ Opções</button>
+     <!-- Botões de ação estilo controle (movidos da esquerda) -->
+     <div class="vg-acoes">
+       <div class="vg-ab">
+         <div class="vg-btn"><button class="btn-circ act" onclick="interagirBotaoE()">E</button><span>Ação</span></div>
+         <div class="vg-btn"><button class="btn-circ back" onclick="voltarBotaoB()">B</button><span>Voltar</span></div>
+       </div>
+       <div class="vg-cluster">
+         <div class="vg-btn"><button class="btn-circ gold" onclick="alternarParty()">Q</button><span>Time</span></div>
+         <div class="vg-btn"><button class="btn-circ red" onclick="alternarPokedex()">O</button><span>Dex</span></div>
+         <div class="vg-btn"><button class="btn-circ vis" onclick="abrirCustom()">C</button><span>Visual</span></div>
+         <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
+       </div>
      </div>
+     <!-- Botão Opções redondo (abre o menu com Time/Dex/Visual/Mapa/Salvar + áudio) -->
+     <div class="vg-btn" style="margin-top:auto"><button class="btn-circ opcoes" onclick="alternarConfig()">⚙</button><span>Opções</span></div>
    </aside>
   </div>
 
-  <div class="hint">Mova com <span class="kbd">W A S D</span> · Interaja <span class="kbd">E</span> · Time <span class="kbd">P</span> · Dex <span class="kbd">O</span> · Batalha na grama <span class="kbd">Espaço</span></div>
+  <div class="hint">Mova com <span class="kbd">W A S D</span> · Interaja <span class="kbd">E</span> · Time <span class="kbd">Q</span> · Dex <span class="kbd">O</span> · Batalha na grama <span class="kbd">Espaço</span></div>
 </div>
 
 <!-- Minimapa modal -->
@@ -176,10 +169,16 @@
 <!-- Config modal -->
 <div id="modal-configuracoes" class="modal">
   <div class="sheet">
-    <h3>🎵 Música</h3>
-    <p>Trilha sonora chiptune gerada em tempo real. Ajuste o volume ou mute.</p>
+    <h3>⚙ Opções</h3>
+    <div class="side-actions" style="margin-bottom:12px">
+      <button class="side-btn s-gold" onclick="opcaoMenu(alternarParty)">★ Time <small>Q</small></button>
+      <button class="side-btn s-red" onclick="opcaoMenu(alternarPokedex)">📕 Pokédex <small>O</small></button>
+      <button class="side-btn s-green" onclick="opcaoMenu(abrirCustom)">🎨 Visual <small>C</small></button>
+      <button class="side-btn s-purple" onclick="opcaoMenu(abrirMapa)">🗺 Ver Mapa <small>M</small></button>
+      <button class="side-btn s-blue" onclick="opcaoMenu(salvarJogo)">💾 Salvar</button>
+    </div>
     <div class="field">
-      <label>Volume — <span id="vol-txt">50%</span></label>
+      <label>🎵 Volume — <span id="vol-txt">50%</span></label>
       <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="mudarVolume(this.value)">
     </div>
     <div class="field">
@@ -315,7 +314,7 @@
   </div>
 </div>
 
-<script src="js/sprites.js?v=16"></script>
-<script src="js/jogo.js?v=16"></script>
+<script src="js/sprites.js?v=17"></script>
+<script src="js/jogo.js?v=17"></script>
 </body>
 </html>

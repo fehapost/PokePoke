@@ -631,8 +631,8 @@ body{
   background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
   border-radius:14px; padding:14px 12px; box-shadow:var(--shadow)}
 .d-pad{display:grid; grid-template-columns:repeat(3,42px); grid-template-rows:repeat(3,42px); gap:4px}
-/* Layout estilo controle: cluster de ações em cima, d-pad embaixo */
-#controles{justify-content:flex-start}
+/* Layout estilo controle: d-pad na esquerda; cluster de ações foi para a direita */
+#controles{justify-content:center}
 .vg-acoes{display:flex; flex-direction:column; gap:12px; align-items:center; width:100%}
 .vg-ab{display:flex; gap:16px; justify-content:center}
 .vg-cluster{display:grid; grid-template-columns:repeat(2,auto); gap:8px 16px; justify-items:center}
@@ -640,6 +640,9 @@ body{
 .vg-btn span{font-size:9px; font-weight:700; color:var(--muted); letter-spacing:.2px}
 .d-pad{margin-top:6px}
 .btn-circ.map{background:#8a5cff; color:#fff; border-color:#8a5cff}
+.btn-circ.music{background:#7c5cff; color:#fff; border-color:#7c5cff}
+.btn-circ.opcoes{background:var(--panel2); color:var(--ink); border:1px solid var(--line); font-size:21px}
+.btn-circ.opcoes:hover{border-color:var(--accent)}
 /* controles de quantidade do carrinho da loja */
 .qty-ctrl{display:flex; align-items:center; gap:7px; flex:0 0 auto}
 .qty-btn{width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--panel2);
