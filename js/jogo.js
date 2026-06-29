@@ -2,7 +2,7 @@
 /* ============ STATE ============ */
 // Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
 // Bump aqui a cada mudança que você quiser marcar como nova versão.
-const VERSAO_JOGO='1.0.0';
+const VERSAO_JOGO='1.1.0';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -908,12 +908,11 @@ function cercadoMato(ox,oy,larg,alt){
     set('E6',VASO);                          // planta
     set('F6',ESTANTE_NOVA); set('G6',ESTANTE_NOVA); set('H6',ESTANTE_NOVA); // prateleiras
     set('I6',ESTANTE_NOVA);                   // prateleira
-    set('J6',VASO);                           // planta
+    set('J6',ESTANTE_NOVA);                   // armário (era planta) — igual ao L6
     set('K6',ESTANTE_NOVA); set('L6',ESTANTE_NOVA); // prateleiras (replicadas em K,L)
     set('M6',PC_CURA);                        // COMPUTADOR de cura (PC)
-    // mesa do professor (row9) com starters em cima (row8)
-    for(let c=D+3;c<=N-3;c++){ set2col(c,9-1); }
-    function set2col(c,r){ if(MAPA[r]?.[c]!==undefined) MAPA[r][c]=6; }
+    // MESA SEPARADA: 3 esferas iniciais em H8/I8/J8 + pedestal do Pikachu em M10
+    ['H8','I8','J8','M10'].forEach(c=>set(c,6));
     // sofá vertical na esquerda (rows 9-10)
     set('E9',SOFA_TOP); set('E10',SOFA_BOT);
   })();
@@ -1459,7 +1458,7 @@ setInterval(()=>{
 },2200);
 
 let npcsInternos=[
-  {nome:'PROF',x:8,y:7,cor:'c-branco',spriteCustom:'professor',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos.\n\nIMPORTANTE: quando seus Pokémon ficarem feridos ou desmaiarem, vá ao CENTRO POKÉMON (a casa de teto vermelho) e use [E] no computador de cura para recuperar TODA a equipe de graça. Se todos desmaiarem, você não poderá batalhar até curá-los lá!"},
+  {nome:'PROF',x:8,y:6,cor:'c-branco',spriteCustom:'professor',msg:"Prof. Cedro:\nAh, é você! Pegue um parceiro na mesa e explore Nova Region.\nA estrada no meio cruza o rio por pontes de madeira. Há dois Ginásios (teto azul) e um Centro Pokémon (teto vermelho) nos cantos.\n\nIMPORTANTE: quando seus Pokémon ficarem feridos ou desmaiarem, vá ao CENTRO POKÉMON (a casa de teto vermelho) e use [E] no computador de cura para recuperar TODA a equipe de graça. Se todos desmaiarem, você não poderá batalhar até curá-los lá!"},
   {nome:'Vendedor',x:43,y:40,cor:'c-azul-r',msg:"Vendedor de Pokémon:\nCompro e vendo Pokémon! As ofertas mudam a cada 5 minutos."},
   {nome:'Vendedor2',x:8,y:41,cor:'c-verde',dir:'cima',msg:"Vendedor:\nEsferas a bom preço, freguês!"},
   // Casa Aconchego (BH32..BN36): dois moradores em volta da mesa de centro
@@ -1478,8 +1477,6 @@ let npcsCampo=[
   // Bloqueio policial em R (col 17): dois guardas + cerca, caminho interditado
   {nome:'Policial2',x:17,y:27,spriteCustom:'policia',dir:'esquerda',msg:"Policial:\n🚧 Este caminho está INTERDITADO! Ninguém passa por aqui hoje."},
   {nome:'Policial3',x:17,y:29,spriteCustom:'policia',dir:'esquerda',msg:"Policial:\nDesculpe, treinador. A via está fechada — siga por outro caminho."},
-  // Aviso perto do rio (R46): cuidado, caminho perigoso
-  {nome:'Aviso',x:17,y:45,cor:'c-marrom-b',dir:'cima',msg:"Morador:\nCuidado! O caminho à frente é perigoso. Pokémon fortes rondam por aqui — vá com atenção."},
   {nome:'Professor',x:27,y:18,spriteCustom:'professor',msg:"Professor:\nBem-vindo ao meu laboratório de campo! Estude bem cada Pokémon que encontrar."},
   {nome:'Sábio',x:28,y:18,spriteCustom:'sabio',msg:"Sábio:\nJá percorri muitas regiões com esta mochila. A jornada ensina mais que qualquer batalha."}
 ];
@@ -1542,23 +1539,28 @@ let listaTreinadores=[
   {id:7,x:8,y:41,corClasse:'c-roxo',nome:'LÍDER Sabrina',pokemons:[{n:'Alakazam',lvl:42}],derrotado:false,lider:true,premio:3200},
   // ---- Treinadores de campo (times aleatórios) ----
   {id:10,x:10,y:46,corClasse:'c-azul-r',skin:'np',nome:'Treinador Novato',pokemons:[{n:'Spearow',lvl:10},{n:'Horsea',lvl:10},{n:'Magneton',lvl:10}],derrotado:false,premio:600},
-  {id:11,x:31,y:45,corClasse:'c-marrom-b',nome:'Treinador Veterano',pokemons:[{n:'Raticate',lvl:25},{n:'Moltres',lvl:25},{n:'Nidoking',lvl:25},{n:'Graveler',lvl:25}],derrotado:false,premio:1500},
+  {id:11,x:31,y:45,corClasse:'c-marrom-b',skin:'np',nome:'Treinador Veterano',pokemons:[{n:'Raticate',lvl:25},{n:'Moltres',lvl:25},{n:'Nidoking',lvl:25},{n:'Graveler',lvl:25}],derrotado:false,premio:1500},
   {id:12,x:47,y:45,corClasse:'c-roxo',nome:'Treinador Elite',pokemons:[{n:'Kabutops',lvl:35},{n:'MrMime',lvl:35},{n:'Persian',lvl:35}],derrotado:false,premio:2100},
   {id:13,x:32,y:40,corClasse:'c-azul-j',skin:'nb',nome:'Treinador Errante',dir:'esquerda',pokemons:[{n:'Psyduck',lvl:10},{n:'Flareon',lvl:10},{n:'Ekans',lvl:10}],derrotado:false,premio:1800},
-  {id:15,x:20,y:30,corClasse:'c-verde',skin:'nb',nome:'Treinador da Trilha',dir:'direita',pokemons:[{n:'Sandshrew',lvl:11},{n:'Geodude',lvl:11}],derrotado:false,premio:900},
+  {id:15,x:20,y:33,corClasse:'c-verde',skin:'nb',nome:'Treinador da Trilha',dir:'esquerda',pokemons:[{n:'Sandshrew',lvl:11},{n:'Geodude',lvl:11}],derrotado:false,premio:900},
   {id:16,x:53,y:5,corClasse:'c-roxo',nome:'BOSS do Labirinto',dir:'baixo',pokemons:[{n:'Onix',lvl:35},{n:'Golem',lvl:38},{n:'Rhydon',lvl:40}],derrotado:false,lider:true,premio:8000,bossLabirinto:true},
   {id:17,x:55,y:13,corClasse:'c-azul-j',nome:'Guardião I',dir:'cima',pokemons:[{n:'Machop',lvl:15}],derrotado:false,premio:1500},
   {id:18,x:63,y:11,corClasse:'c-vermelho',nome:'Guardião II',dir:'esquerda',pokemons:[{n:'Graveler',lvl:20}],derrotado:false,premio:2000},
   {id:19,x:54,y:9,corClasse:'c-amarelo',nome:'Guardião III',dir:'baixo',pokemons:[{n:'Hitmonlee',lvl:25}],derrotado:false,premio:2500},
-  {id:20,x:58,y:7,corClasse:'c-verde',nome:'Guardião IV',dir:'direita',pokemons:[{n:'Onix',lvl:30}],derrotado:false,premio:3000}
+  {id:20,x:58,y:7,corClasse:'c-verde',nome:'Guardião IV',dir:'direita',pokemons:[{n:'Onix',lvl:30}],derrotado:false,premio:3000},
+  // Treinador ninja em S46 (era o aviso 'Morador' de R46, agora vira batalha) — ninja preto
+  {id:21,x:18,y:45,corClasse:'c-marrom-b',skin:'np',nome:'Ninja das Sombras',dir:'cima',pokemons:[{n:'Ekans',lvl:12},{n:'Koffing',lvl:12},{n:'Zubat',lvl:12}],derrotado:false,premio:1100},
+  // Segundo ninja branco logo abaixo do da trilha (U34) — em U35, virado p/ esquerda
+  {id:22,x:20,y:34,corClasse:'c-verde',skin:'nb',nome:'Ninja da Trilha',dir:'esquerda',pokemons:[{n:'Sandshrew',lvl:11},{n:'Zubat',lvl:11}],derrotado:false,premio:900}
 ];
 
-// Starters na MESA DO PROFESSOR — lado a lado, sobre a mesa grande (linha 7)
+// Starters: 3 esferas na mesa (H8/I8/J8) + Pikachu num pedestal separado (M10).
+// Escolher qualquer um define o inicial e faz os outros sumirem (render é gated por !inicialEscolhido).
 const STARTERS=[
-  {nome:'Bulbasaur', x:6, y:8, atalho:'Q'},
-  {nome:'Charmander',x:7,y:8, atalho:'W'},
-  {nome:'Squirtle',  x:8,y:8, atalho:'E'},
-  {nome:'Pikachu',   x:9,y:8, atalho:'R'}
+  {nome:'Bulbasaur', x:7, y:7, atalho:'Q'},  // H8
+  {nome:'Charmander',x:8, y:7, atalho:'W'},  // I8
+  {nome:'Squirtle',  x:9, y:7, atalho:'E'},  // J8
+  {nome:'Pikachu',   x:12,y:9, atalho:'R'}   // M10 (separado)
 ];
 
 /* ============ NOTIFICATION ============ */

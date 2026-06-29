@@ -496,11 +496,11 @@ body{
 @keyframes eiSlide{from{background-position:0 0}to{background-position:60px 0}}
 #encontro-intro .ei-content{position:absolute; inset:0; display:flex; flex-direction:column;
   align-items:center; justify-content:center; gap:12px; z-index:2}
-.ei-sprite-wrap{width:150px; height:150px; border-radius:50%;
+.ei-sprite-wrap{width:195px; height:195px; border-radius:50%;
   background:radial-gradient(circle at 50% 45%, var(--ei-cor,#9CA3AF)44, transparent 70%);
   display:grid; place-items:center; animation:eiPop .6s cubic-bezier(.2,1.4,.5,1) .25s both}
 @keyframes eiPop{from{transform:scale(.2); opacity:0}to{transform:scale(1); opacity:1}}
-#ei-sprite{width:120px; height:120px; image-rendering:pixelated; filter:drop-shadow(0 0 14px var(--ei-cor,#9CA3AF))}
+#ei-sprite{width:156px; height:156px; image-rendering:pixelated; filter:drop-shadow(0 0 14px var(--ei-cor,#9CA3AF))}
 .ei-text{font-size:16px; font-weight:800; letter-spacing:.4px; opacity:0; animation:eiUp .4s ease .55s forwards}
 .ei-rar{font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
   color:var(--ei-cor,#9CA3AF); border:2px solid var(--ei-cor,#9CA3AF); padding:3px 14px; border-radius:999px;
@@ -522,7 +522,7 @@ body{
 .plataforma{position:absolute; width:170px; height:46px; border-radius:50%;
   background:radial-gradient(ellipse at 50% 35%, #8fd07a, #5aa84e); box-shadow:0 8px 16px rgba(0,0,0,.18)}
 #plat-inimigo{right:24px; top:96px} #plat-jogador{left:34px; bottom:6px}
-.sprite-pokemon{width:118px; height:118px; image-rendering:pixelated; position:absolute; z-index:2;
+.sprite-pokemon{width:153px; height:153px; image-rendering:pixelated; position:absolute; z-index:2;
   filter:drop-shadow(0 6px 4px rgba(0,0,0,.25))}
 #img-inimigo{right:46px; top:8px; animation:floatA 3s ease-in-out infinite}
 #img-jogador{left:64px; bottom:2px; transform:scale(1.35); transform-origin:bottom center}
