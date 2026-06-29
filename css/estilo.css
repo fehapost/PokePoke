@@ -18,10 +18,10 @@ body{
 /* a escala/deslocamento do .app são definidos por ajustarEscala() (cabe na tela, inclusive mobile deitado) */
 .app{display:inline-flex; flex-direction:column; align-items:center; gap:14px; width:auto; max-width:none;
   transform-origin:center center; will-change:transform}
-.game-row{display:flex; gap:14px; align-items:center; width:100%; justify-content:center}   /* controles centralizados na vertical */
+.game-row{display:flex; gap:14px; align-items:stretch; width:100%; justify-content:center}   /* painéis na mesma altura do quadro */
 
 /* Right sidebar */
-.sidebar{width:188px; display:flex; flex-direction:column; gap:12px;
+.sidebar{width:210px; display:flex; flex-direction:column; gap:12px;
   background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
   border-radius:14px; padding:14px; box-shadow:var(--shadow)}
 .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px}
@@ -52,7 +52,7 @@ body{
 
 /* Viewport / world */
 #viewport{
-  width:540px; height:540px; max-width:100%; background:#0d1322; position:relative; overflow:hidden;
+  width:675px; height:540px; background:#0d1322; position:relative; overflow:hidden;
   border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow);
 }
 #viewport:before{content:""; position:absolute; inset:0; z-index:300; pointer-events:none;
@@ -411,8 +411,8 @@ body{
   filter:drop-shadow(1px 2px 1px rgba(0,0,0,.45)); pointer-events:none}
 .grid-pixel-char canvas{width:38px; height:38px; image-rendering:pixelated; display:block;
   margin-bottom:-2px; transform:scaleY(0.9); transform-origin:bottom center} /* -15% largura, -10% altura */
-#player{z-index:99; top:255px; left:255px}
-#companheiro{z-index:98; top:255px; left:255px}
+#player{z-index:99; top:255px; left:323px}
+#companheiro{z-index:98; top:255px; left:323px}
 /* Pokémon que segue o jogador: −15% (sobre o scaleY(0.9) base) */
 #companheiro canvas{transform:scale(0.85, 0.765); transform-origin:bottom center}
 /* Folhas ao vento (efeito ao falar com os NPCs do cabelo): direita -> esquerda */
@@ -628,20 +628,22 @@ body{
 .btn-tipo .mv-ic{font-size:12px}
 .btn-tipo .atalho{background:rgba(0,0,0,.28); color:#fff}
 
-/* Controls (coluna à esquerda do mapa) */
-#controles{width:auto; flex:0 0 auto; display:flex; flex-direction:column; gap:14px; align-items:center; justify-content:flex-start;
+/* Controls (coluna à esquerda do mapa) — mesma altura do quadro principal */
+#controles{width:auto; flex:0 0 auto; display:flex; flex-direction:column; gap:14px; align-items:center; justify-content:space-between;
   background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
-  border-radius:14px; padding:14px 12px; box-shadow:var(--shadow)}
-.d-pad{display:grid; grid-template-columns:repeat(3,63px); grid-template-rows:repeat(3,63px); gap:6px}
-/* Layout estilo controle: d-pad na esquerda; cluster de ações foi para a direita */
-#controles{justify-content:center}
-.vg-acoes{display:flex; flex-direction:column; gap:14px; align-items:center; width:100%}
-.sidebar .vg-acoes{margin-top:auto; margin-bottom:6px}   /* desce os botões da direita */
+  border-radius:14px; padding:14px; box-shadow:var(--shadow)}
+/* Opções no topo-esquerdo, tipo ESC */
+.btn-esc{align-self:flex-start; width:60px; height:46px; border-radius:10px; border:1px solid var(--line);
+  background:var(--panel2); color:var(--ink); font-size:24px; cursor:pointer; display:grid; place-items:center}
+.btn-esc:hover{border-color:var(--accent)} .btn-esc:active{transform:translateY(1px)}
+/* duas fileiras de 3 botões (Q ↑ E / ← ↓ →) */
+.botoes-grid{display:grid; grid-template-columns:repeat(3,76px); grid-template-rows:repeat(2,76px); gap:7px}
+.vg-acoes{display:flex; flex-direction:column; gap:17px; align-items:center; width:100%}
+.sidebar .vg-acoes{margin-top:auto; margin-bottom:auto}   /* centraliza os botões na barra (mesma altura do quadro) */
 .vg-ab{display:flex; gap:16px; justify-content:center}
-.vg-cluster{display:grid; grid-template-columns:repeat(2,auto); gap:11px 18px; justify-items:center}
+.vg-cluster{display:grid; grid-template-columns:repeat(2,auto); gap:13px 22px; justify-items:center}
 .vg-btn{display:flex; flex-direction:column; align-items:center; gap:3px}
-.vg-btn span{font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.2px}
-.d-pad{margin-top:6px}
+.vg-btn span{font-size:14px; font-weight:700; color:var(--muted); letter-spacing:.2px}
 .btn-circ.map{background:#8a5cff; color:#fff; border-color:#8a5cff}
 .btn-circ.music{background:#7c5cff; color:#fff; border-color:#7c5cff}
 .btn-circ.opcoes{background:var(--panel2); color:var(--ink); border:1px solid var(--line); font-size:27px}
@@ -652,8 +654,8 @@ body{
   color:var(--ink); font-weight:800; font-size:17px; cursor:pointer; line-height:1; display:grid; place-items:center}
 .qty-btn:hover{border-color:var(--accent)} .qty-btn:active{transform:translateY(1px)}
 .qty-num{min-width:24px; text-align:center; font-weight:800; font-size:15px}
-.btn-circ{flex:0 0 auto; width:66px; height:66px; border-radius:50%; border:1px solid var(--line); cursor:pointer;
-  font-weight:800; font-size:21px; display:grid; place-items:center; line-height:1;
+.btn-circ{flex:0 0 auto; width:79px; height:79px; border-radius:50%; border:1px solid var(--line); cursor:pointer;
+  font-weight:800; font-size:25px; display:grid; place-items:center; line-height:1;
   background:var(--panel2); color:var(--ink); box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .btn-circ:active{transform:translateY(1px)}
 .btn-circ.act{background:var(--accent); color:#fff; border-color:var(--accent)}
@@ -664,20 +666,19 @@ body{
 .btn-circ.save{background:#5b8cff; color:#fff; border-color:#5b8cff; font-size:18px}
 .btn-circ.music{background:#7c5cff; color:#fff; border-color:#7c5cff; font-size:18px}
 .btn-dir{background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:9px;
-  font-weight:700; cursor:pointer; display:grid; place-items:center; font-size:16px}
+  font-weight:700; cursor:pointer; display:grid; place-items:center; font-size:19px}
 .btn-dir:active{background:var(--accent); color:#fff}
 .btn-dir.center{background:#0c1220; color:var(--accent)}
 /* setas de movimento: azul (destaque) */
-.btn-dir.arrow{background:var(--accent); color:#fff; border-color:var(--accent); font-size:22px}
+.btn-dir.arrow{background:var(--accent); color:#fff; border-color:var(--accent); font-size:26px}
 .btn-dir.arrow:active{filter:brightness(1.15)}
 /* Q e E: redondos */
 .btn-dir.round{border-radius:50%}
-.btn-dir.alt{background:#222a3d; color:var(--gold); font-weight:800; font-size:18px}
-.btn-dir.act2{background:#0c1220; color:var(--accent); font-weight:800; font-size:21px}
-/* Espaço: linha própria abaixo do ↓, largura de 3 botões */
-.d-pad{grid-template-rows:repeat(3,63px) 54px}
-.btn-dir.esp-wide{grid-column:1 / -1; height:54px; border-radius:10px;
-  background:#222a3d; color:var(--gold); font-weight:800; font-size:17px; letter-spacing:.5px}
+.btn-dir.alt{background:#222a3d; color:var(--gold); font-weight:800; font-size:22px}
+.btn-dir.act2{background:#0c1220; color:var(--accent); font-weight:800; font-size:25px}
+/* Espaço: largura das 3 colunas (3×76 + 2×7 = 242px) */
+.btn-dir.esp-wide{width:242px; height:62px; border-radius:11px;
+  background:#222a3d; color:var(--gold); font-weight:800; font-size:20px; letter-spacing:.5px}
 .btn-circ.bag{background:#c08a3e; color:#2a1c08; border-color:#c08a3e}
 
 /* Config / intro modals */
@@ -714,6 +715,5 @@ body{
   .sidebar{width:100%; flex-direction:row; flex-wrap:wrap; align-items:center}
   .sidebar .brand{flex:1 1 100%}
   .side-chips{flex-direction:row; flex:1 1 auto}
-  .sidebar .vg-acoes{margin-top:0}
-  #viewport,#controles{width:100%; max-width:540px}
+  .sidebar .vg-acoes{margin-top:0; margin-bottom:0}
 }

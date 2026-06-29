@@ -6,9 +6,9 @@
 <title>NOVA REGION — Pokémon Engine</title>
 <meta name="description" content="Explore Nova Region, capture Pokémon e enfrente Ginásios neste jogo HTML5.">
 <!-- Favicon / ícone -->
-<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=22">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=22">
-<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=22">
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg?v=23">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icon/favicon-64.png?v=23">
+<link rel="apple-touch-icon" href="assets/icon/icon-180.png?v=23">
 <!-- Compartilhamento (WhatsApp / Open Graph) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="NOVA REGION — Pokémon Engine">
@@ -17,32 +17,32 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/estilo.css?v=22">
+<link rel="stylesheet" href="css/estilo.css?v=23">
 </head>
 <body>
 <div class="app">
   <div class="game-row">
    <!-- Controls (left column) -->
    <div id="controles">
-    <!-- D-pad + ações: Q ↑ E / ← → / ↓ / [Espaço] -->
-    <div class="d-pad">
+    <!-- Opções no topo, tipo ESC -->
+    <button class="btn-esc" onclick="alternarConfig()" title="Opções">⚙</button>
+    <!-- Duas fileiras de 3: Q ↑ E / ← ↓ → -->
+    <div class="botoes-grid">
       <button class="btn-dir round alt" onclick="alternarParty()" title="Time">Q</button>
       <button class="btn-dir arrow" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button>
       <button class="btn-dir round act2" onclick="interagirBotaoE()" title="Ação">E</button>
       <button class="btn-dir arrow" ontouchstart="forcarMovimento('a')" onclick="forcarMovimento('a')">←</button>
-      <div></div>
-      <button class="btn-dir arrow" ontouchstart="forcarMovimento('d')" onclick="forcarMovimento('d')">→</button>
-      <div></div>
       <button class="btn-dir arrow" ontouchstart="forcarMovimento('s')" onclick="forcarMovimento('s')">↓</button>
-      <div></div>
-      <button class="btn-dir esp-wide" onclick="apertarEspaco()" title="Espaço">Espaço</button>
+      <button class="btn-dir arrow" ontouchstart="forcarMovimento('d')" onclick="forcarMovimento('d')">→</button>
     </div>
+    <!-- Espaço (largura das 3 colunas) -->
+    <button class="btn-dir esp-wide" onclick="apertarEspaco()" title="Espaço">Espaço</button>
    </div>
    <div id="viewport">
     <div id="mapa"></div>
     <div id="player" class="grid-pixel-char"></div>
     <div id="companheiro" class="grid-pixel-char" style="display:none"></div>
-    <div id="mato-frente-player" class="mato-frente" style="display:none; top:270px; left:258px"></div>
+    <div id="mato-frente-player" class="mato-frente" style="display:none; top:270px; left:323px"></div>
 
     <!-- Overlay de transição entre regiões -->
     <div id="transicao-regiao" style="position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; z-index:9000; display:flex; align-items:center; justify-content:center; transition:opacity .45s ease">
@@ -148,8 +148,6 @@
          <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
          <div class="vg-btn"><button class="btn-circ bag" onclick="abrirMochila()">R</button><span>Mochila</span></div>
        </div>
-       <!-- Botão Opções redondo (abre o menu com Time/Dex/Visual/Mapa/Salvar + áudio) -->
-       <div class="vg-btn"><button class="btn-circ opcoes" onclick="alternarConfig()">⚙</button><span>Opções</span></div>
      </div>
    </aside>
   </div>
@@ -329,7 +327,7 @@
   </div>
 </div>
 
-<script src="js/sprites.js?v=22"></script>
-<script src="js/jogo.js?v=22"></script>
+<script src="js/sprites.js?v=23"></script>
+<script src="js/jogo.js?v=23"></script>
 </body>
 </html>
