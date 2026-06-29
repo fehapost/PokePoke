@@ -636,10 +636,20 @@ body{
 .btn-esc{align-self:flex-start; width:60px; height:46px; border-radius:10px; border:1px solid var(--line);
   background:var(--panel2); color:var(--ink); font-size:24px; cursor:pointer; display:grid; place-items:center}
 .btn-esc:hover{border-color:var(--accent)} .btn-esc:active{transform:translateY(1px)}
-/* duas fileiras de 3 botões (Q ↑ E / ← ↓ →) */
-.botoes-grid{display:grid; grid-template-columns:repeat(3,76px); grid-template-rows:repeat(2,76px); gap:7px}
+/* d-pad em cruz: Q ↑ E / ←  → / (vazio) ↓ (vazio) */
+.botoes-grid{display:grid; grid-template-columns:repeat(3,76px); grid-template-rows:repeat(3,76px); gap:7px}
+/* Seleção de personagem (parte 2 da intro): personagem à esquerda, nomes à direita */
+.intro-sel{display:flex; gap:16px; align-items:flex-start; margin:8px 0 4px}
+.intro-sel-esq{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; width:130px}
+.intro-preview-box{width:130px; height:130px; background:#0b1120; border:1px solid var(--line); border-radius:12px; display:grid; place-items:center}
+.intro-sel-dir{flex:1 1 auto; min-width:0}
+.intro-nomes{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.intro-nomes .btn-acao{width:100%}
 .vg-acoes{display:flex; flex-direction:column; gap:17px; align-items:center; width:100%}
 .sidebar .vg-acoes{margin-top:auto; margin-bottom:auto}   /* centraliza os botões na barra (mesma altura do quadro) */
+/* Versão do jogo: discreta, alinhada ao canto inferior direito da barra */
+.versao-jogo{align-self:flex-end; margin-top:auto; color:var(--muted); opacity:.5;
+  font-size:10px; letter-spacing:.4px; font-weight:500; user-select:none}
 .vg-ab{display:flex; gap:16px; justify-content:center}
 .vg-cluster{display:grid; grid-template-columns:repeat(2,auto); gap:13px 22px; justify-items:center}
 .vg-btn{display:flex; flex-direction:column; align-items:center; gap:3px}

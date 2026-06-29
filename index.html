@@ -31,9 +31,9 @@
       <button class="btn-dir round alt" onclick="alternarParty()" title="Time">Q</button>
       <button class="btn-dir arrow" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button>
       <button class="btn-dir round act2" onclick="interagirBotaoE()" title="Ação">E</button>
-      <button class="btn-dir arrow" ontouchstart="forcarMovimento('a')" onclick="forcarMovimento('a')">←</button>
-      <button class="btn-dir arrow" ontouchstart="forcarMovimento('s')" onclick="forcarMovimento('s')">↓</button>
-      <button class="btn-dir arrow" ontouchstart="forcarMovimento('d')" onclick="forcarMovimento('d')">→</button>
+      <button class="btn-dir arrow" style="grid-column:1; grid-row:2" ontouchstart="forcarMovimento('a')" onclick="forcarMovimento('a')">←</button>
+      <button class="btn-dir arrow" style="grid-column:3; grid-row:2" ontouchstart="forcarMovimento('d')" onclick="forcarMovimento('d')">→</button>
+      <button class="btn-dir arrow" style="grid-column:2; grid-row:3" ontouchstart="forcarMovimento('s')" onclick="forcarMovimento('s')">↓</button>
     </div>
     <!-- Espaço (largura das 3 colunas) -->
     <button class="btn-dir esp-wide" onclick="apertarEspaco()" title="Espaço">Espaço</button>
@@ -149,6 +149,8 @@
          <div class="vg-btn"><button class="btn-circ bag" onclick="abrirMochila()">R</button><span>Mochila</span></div>
        </div>
      </div>
+     <!-- Versão do jogo (discreta, canto inferior direito) — texto definido por VERSAO_JOGO em jogo.js -->
+     <div class="versao-jogo" id="versao-jogo">v1.0.0</div>
    </aside>
   </div>
 
@@ -205,42 +207,52 @@
 
 <!-- Intro -->
 <div id="intro" class="modal" style="display:flex">
-  <div class="sheet" style="max-width:480px">
-    <h3>NOVA REGION</h3>
-    <p style="color:var(--gold); font-weight:600; margin-top:0;">Prólogo</p>
-    <div class="story" id="story-text" style="max-height:120px"></div>
+  <div class="sheet" style="max-width:560px">
 
-    <div style="display:flex; gap:16px; align-items:center; margin:12px 0 4px">
-      <div style="width:90px; height:90px; flex:0 0 auto; background:#0b1120; border:1px solid var(--line);
-        border-radius:12px; display:grid; place-items:center;">
-        <canvas id="cv-intro" width="64" height="64" style="width:74px; height:74px; image-rendering:pixelated;"></canvas>
-      </div>
-      <div style="flex:1">
-        <div style="font-weight:700; font-size:13px; margin-bottom:4px">Monte seu treinador</div>
-        <p style="margin:0 0 8px; color:var(--muted); font-size:12px">Escolha um personagem e dê um nome a ele.</p>
-        <button class="btn-acao btn-ghost" style="height:32px" onclick="girarIntro()">↻ Girar prévia</button>
-      </div>
-    </div>
-    <div style="margin:8px 0">
-      <label for="nome-jogador-intro" style="display:block; font-size:12px; color:var(--muted); font-weight:600; margin-bottom:6px">Nome do treinador</label>
-      <input id="nome-jogador-intro" type="text" maxlength="12" placeholder="Seu nome" oninput="aoEditarNome(this.value)"
-        style="width:100%; box-sizing:border-box; height:36px; padding:0 12px; background:#0b1120; color:var(--text); border:1px solid var(--line); border-radius:8px; font-size:14px; outline:none">
-    </div>
-    <div style="margin:8px 0">
-      <div style="font-size:12px; color:var(--muted); font-weight:600; margin-bottom:6px">Personagem</div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button id="btn-genero-m-intro" class="btn-acao btn-ghost" style="height:38px; flex:1 1 45%; min-width:110px; border:2px solid var(--accent)" onclick="definirGenero('m')">Luke</button>
-        <button id="btn-genero-l-intro" class="btn-acao btn-ghost" style="height:38px; flex:1 1 45%; min-width:110px; border:2px solid var(--line)" onclick="definirGenero('l')">Mike</button>
-        <button id="btn-genero-f-intro" class="btn-acao btn-ghost" style="height:38px; flex:1 1 45%; min-width:110px; border:2px solid var(--line)" onclick="definirGenero('f')">Ayla</button>
-        <button id="btn-genero-lf-intro" class="btn-acao btn-ghost" style="height:38px; flex:1 1 45%; min-width:110px; border:2px solid var(--line)" onclick="definirGenero('lf')">Jade</button>
+    <!-- PARTE 1: Prólogo (mensagem + OK) -->
+    <div id="intro-prologo">
+      <h3>NOVA REGION</h3>
+      <p style="color:var(--gold); font-weight:600; margin-top:0;">Prólogo</p>
+      <div class="story" id="story-text" style="max-height:220px"></div>
+      <div class="row-btns" style="margin-top:14px">
+        <button class="btn-acao" id="btn-continuar" onclick="continuarJogo()" style="display:none; background:#5b8cff">Continuar (jogo salvo)</button>
+        <button class="btn-acao" id="btn-prologo-ok" onclick="irParaSelecao()">OK</button>
       </div>
     </div>
 
-    <div class="row-btns" style="margin-top:12px">
-      <button class="btn-acao" id="btn-continuar" onclick="continuarJogo()" style="display:none; background:#5b8cff">Continuar (jogo salvo)</button>
-      <button class="btn-acao" id="btn-comecar" onclick="comecarJornada()">Entrar no laboratório</button>
+    <!-- PARTE 2: Seleção de personagem (personagem à esquerda, nomes à direita) -->
+    <div id="intro-personagem" style="display:none">
+      <h3>Monte seu treinador</h3>
+      <div class="intro-sel">
+        <!-- Esquerda: prévia do personagem -->
+        <div class="intro-sel-esq">
+          <div class="intro-preview-box">
+            <canvas id="cv-intro" width="64" height="64" style="width:118px; height:118px; image-rendering:pixelated;"></canvas>
+          </div>
+          <button class="btn-acao btn-ghost" style="height:32px; width:100%; margin-top:8px" onclick="girarIntro()">↻ Girar prévia</button>
+        </div>
+        <!-- Direita: nome + escolha de personagem -->
+        <div class="intro-sel-dir">
+          <p style="margin:0 0 8px; color:var(--muted); font-size:12px">Escolha um personagem e dê um nome a ele.</p>
+          <label for="nome-jogador-intro" style="display:block; font-size:12px; color:var(--muted); font-weight:600; margin-bottom:6px">Nome do treinador</label>
+          <input id="nome-jogador-intro" type="text" maxlength="12" placeholder="Seu nome" oninput="aoEditarNome(this.value)"
+            style="width:100%; box-sizing:border-box; height:36px; padding:0 12px; background:#0b1120; color:var(--text); border:1px solid var(--line); border-radius:8px; font-size:14px; outline:none; margin-bottom:10px">
+          <div style="font-size:12px; color:var(--muted); font-weight:600; margin-bottom:6px">Personagem</div>
+          <div class="intro-nomes">
+            <button id="btn-genero-m-intro" class="btn-acao btn-ghost" style="height:38px; border:2px solid var(--accent)" onclick="definirGenero('m')">Luke</button>
+            <button id="btn-genero-l-intro" class="btn-acao btn-ghost" style="height:38px; border:2px solid var(--line)" onclick="definirGenero('l')">Mike</button>
+            <button id="btn-genero-f-intro" class="btn-acao btn-ghost" style="height:38px; border:2px solid var(--line)" onclick="definirGenero('f')">Ayla</button>
+            <button id="btn-genero-lf-intro" class="btn-acao btn-ghost" style="height:38px; border:2px solid var(--line)" onclick="definirGenero('lf')">Jade</button>
+          </div>
+        </div>
+      </div>
+      <div class="row-btns" style="margin-top:14px">
+        <button class="btn-acao btn-ghost" onclick="voltarPrologo()">Voltar</button>
+        <button class="btn-acao" id="btn-comecar" onclick="comecarJornada()">Entrar no laboratório</button>
+      </div>
+      <div class="hint" id="intro-hint">Depois, vá até a mesa do Prof. Cedro e use [E] em uma Esfera.</div>
     </div>
-    <div class="hint" id="intro-hint">Depois, vá até a mesa do Prof. Cedro e use [E] em uma Esfera.</div>
+
   </div>
 </div>
 

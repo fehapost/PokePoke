@@ -1,5 +1,8 @@
 
 /* ============ STATE ============ */
+// Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
+// Bump aqui a cada mudança que você quiser marcar como nova versão.
+const VERSAO_JOGO='1.0.0';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -563,7 +566,7 @@ const CASAS=[
   {nome:'Ginásio Oeste',      tipo:'ginasio', x0:3,  y0:36, x1:13, y1:44, porta:[8,36]},
   {nome:'Centro Pokémon',     tipo:'centro',  x0:38, y0:36, x1:48, y1:44, porta:[43,36]},
   {nome:'Casa de Pedra',      tipo:'pedra',   x0:52, y0:4,  x1:65, y1:17, porta:[58,17]},
-  {nome:'Casa Aconchego',     tipo:'casa',    x0:59, y0:31, x1:65, y1:35, porta:[59,33]},
+  {nome:'Casa Aconchego',     tipo:'casa',    x0:59, y0:31, x1:65, y1:37, porta:[59,33]},
 ];
 function construirCasa(b){
   for(let r=b.y0;r<=b.y1;r++)for(let c=b.x0;c<=b.x1;c++){
@@ -1157,6 +1160,13 @@ function cercadoMato(ox,oy,larg,alt){
   (function(){ let cc=coord('AY9').c; for(let r=9-1;r<=18-1;r++){ if(MAPA[r]?.[cc]!==undefined && MAPA[r][cc]===0) MAPA[r][cc]=ARV; } })();
   // árvores AX4..AX6 (coluna)
   (function(){ let cc=coord('AX4').c; for(let r=4-1;r<=6-1;r++){ if(MAPA[r]?.[cc]!==undefined && MAPA[r][cc]===0) MAPA[r][cc]=ARV; } })();
+
+  // ====== LOTE: pedidos do usuário (árvores e grama alta) ======
+  const ARVGRANDE=20;            // 20 = árvore-grande
+  linha('X36','X42',ARVGRANDE);  // árvores GRANDES na coluna X
+  linha('Y36','Y42',ARV);        // árvores normais na coluna Y
+  linha('BA34','BA41',ARV);      // árvores na coluna BA
+  bloco('BM39','BN44',MATO);     // grama alta (mato) em BM39..BN44
 })();
 
 // ===== Efeito de FOLHAS ao vento: passam da direita (BC28) p/ a esquerda (AR28), em world coords =====
@@ -1263,7 +1273,7 @@ let pokemonsFixos=[
     ...pokemonsFixos.map(p=>p.x+','+p.y),
     ...(typeof bolasNoChao!=='undefined'?bolasNoChao.map(b=>b.x+','+b.y):[])
   ]);
-  let qtd=Math.min(14, matos.length);
+  let qtd=Math.min(7, matos.length);   // metade do anterior (era 14) — Pokémon selvagens soltos
   let postos=0;
   for(let k=0;k<matos.length && postos<qtd;k++){
     let [c,r]=matos[k]; if(ocupados.has(c+','+r)) continue;
@@ -1459,15 +1469,15 @@ let npcsInternos=[
 let balconista={x:-9,y:-9,cor:'c-verde'}; // removido (loja de cura desativada)
 // NPCs decorativos de campo (sem batalha) — interagíveis com [E]
 let npcsCampo=[
-  {nome:'Moça',x:48,y:27,cor:'c-roxo',msg:"Moça de cabelo grande:\nO vento daqui deixa o meu cabelo uma bagunça total!"},
+  {nome:'Moça',x:48,y:27,skin:'lf',msg:"Moça de cabelo grande:\nO vento daqui deixa o meu cabelo uma bagunça total!"},
   {nome:'Criança',x:47,y:27,cor:'c-amarelo',escala:0.8,dir:'direita',msg:"Criança:\nEu A-DO-RO esse vento! Ele deixa meu cabelo todo bagunçado e eu acho isso o máximo!"},
   {nome:'RIVAL',x:8,y:13,cor:'c-preto',ehRival:true,corClasse:'c-preto',derrotado:false,lider:false,premio:1500,pokemons:[]},
   {nome:'Criança A',x:27,y:17,cor:'c-amarelo',escala:0.8,msg:"Criança:\nViu as flores ali? Tem de várias cores! Minha favorita é a vermelha."},
   {nome:'Criança B',x:28,y:17,cor:'c-verde',escala:0.8,msg:"Criança:\nEu gosto mais dos girassóis! Eles ficam virados pro sol o dia todo."},
-  {nome:'Policial',x:43,y:30,spriteCustom:'policia',msg:"Policial:\nMantenha a ordem na cidade, treinador. A travessia é só nas faixas de pedestre!"},
+  {nome:'Policial',x:41,y:26,spriteCustom:'policia',dir:'esquerda',msg:"Policial:\nMantenha a ordem na cidade, treinador. A travessia é só nas faixas de pedestre!"},
   // Bloqueio policial em R (col 17): dois guardas + cerca, caminho interditado
-  {nome:'Policial2',x:17,y:27,cor:'c-azul-r',dir:'esquerda',msg:"Policial:\n🚧 Este caminho está INTERDITADO! Ninguém passa por aqui hoje."},
-  {nome:'Policial3',x:17,y:29,cor:'c-azul-r',dir:'esquerda',msg:"Policial:\nDesculpe, treinador. A via está fechada — siga por outro caminho."},
+  {nome:'Policial2',x:17,y:27,spriteCustom:'policia',dir:'esquerda',msg:"Policial:\n🚧 Este caminho está INTERDITADO! Ninguém passa por aqui hoje."},
+  {nome:'Policial3',x:17,y:29,spriteCustom:'policia',dir:'esquerda',msg:"Policial:\nDesculpe, treinador. A via está fechada — siga por outro caminho."},
   // Aviso perto do rio (R46): cuidado, caminho perigoso
   {nome:'Aviso',x:17,y:45,cor:'c-marrom-b',dir:'cima',msg:"Morador:\nCuidado! O caminho à frente é perigoso. Pokémon fortes rondam por aqui — vá com atenção."},
   {nome:'Professor',x:27,y:18,spriteCustom:'professor',msg:"Professor:\nBem-vindo ao meu laboratório de campo! Estude bem cada Pokémon que encontrar."},
@@ -1531,11 +1541,11 @@ let listaTreinadores=[
   // Líder do Ginásio Oeste (inf. esq.)
   {id:7,x:8,y:41,corClasse:'c-roxo',nome:'LÍDER Sabrina',pokemons:[{n:'Alakazam',lvl:42}],derrotado:false,lider:true,premio:3200},
   // ---- Treinadores de campo (times aleatórios) ----
-  {id:10,x:10,y:46,corClasse:'c-azul-r',nome:'Treinador Novato',pokemons:[{n:'Spearow',lvl:10},{n:'Horsea',lvl:10},{n:'Magneton',lvl:10}],derrotado:false,premio:600},
+  {id:10,x:10,y:46,corClasse:'c-azul-r',skin:'np',nome:'Treinador Novato',pokemons:[{n:'Spearow',lvl:10},{n:'Horsea',lvl:10},{n:'Magneton',lvl:10}],derrotado:false,premio:600},
   {id:11,x:31,y:45,corClasse:'c-marrom-b',nome:'Treinador Veterano',pokemons:[{n:'Raticate',lvl:25},{n:'Moltres',lvl:25},{n:'Nidoking',lvl:25},{n:'Graveler',lvl:25}],derrotado:false,premio:1500},
   {id:12,x:47,y:45,corClasse:'c-roxo',nome:'Treinador Elite',pokemons:[{n:'Kabutops',lvl:35},{n:'MrMime',lvl:35},{n:'Persian',lvl:35}],derrotado:false,premio:2100},
-  {id:13,x:32,y:40,corClasse:'c-azul-j',nome:'Treinador Errante',dir:'esquerda',pokemons:[{n:'Psyduck',lvl:10},{n:'Flareon',lvl:10},{n:'Ekans',lvl:10}],derrotado:false,premio:1800},
-  {id:15,x:20,y:30,corClasse:'c-verde',nome:'Treinador da Trilha',dir:'direita',pokemons:[{n:'Sandshrew',lvl:11},{n:'Geodude',lvl:11}],derrotado:false,premio:900},
+  {id:13,x:32,y:40,corClasse:'c-azul-j',skin:'nb',nome:'Treinador Errante',dir:'esquerda',pokemons:[{n:'Psyduck',lvl:10},{n:'Flareon',lvl:10},{n:'Ekans',lvl:10}],derrotado:false,premio:1800},
+  {id:15,x:20,y:30,corClasse:'c-verde',skin:'nb',nome:'Treinador da Trilha',dir:'direita',pokemons:[{n:'Sandshrew',lvl:11},{n:'Geodude',lvl:11}],derrotado:false,premio:900},
   {id:16,x:53,y:5,corClasse:'c-roxo',nome:'BOSS do Labirinto',dir:'baixo',pokemons:[{n:'Onix',lvl:35},{n:'Golem',lvl:38},{n:'Rhydon',lvl:40}],derrotado:false,lider:true,premio:8000,bossLabirinto:true},
   {id:17,x:55,y:13,corClasse:'c-azul-j',nome:'Guardião I',dir:'cima',pokemons:[{n:'Machop',lvl:15}],derrotado:false,premio:1500},
   {id:18,x:63,y:11,corClasse:'c-vermelho',nome:'Guardião II',dir:'esquerda',pokemons:[{n:'Graveler',lvl:20}],derrotado:false,premio:2000},
@@ -1992,6 +2002,7 @@ lado:[
 /* ===== SPRITES (carregados de arquivos externos via sprites.js) ===== */
 carregarPersonagens();
 carregarNPCs(true);
+if(typeof carregarNpcAnim==='function') carregarNpcAnim('policial'); // sprite direcional (lado) dos policiais
 // (Pokémon companheiros são carregados sob demanda via carregarMon(nome).)
 
 // Estado de animação do jogador
@@ -2252,12 +2263,29 @@ function hexToRgb(h){let n=parseInt(h.slice(1),16);return [(n>>16)&255,(n>>8)&25
 function ehLaranjaCamisa(r,g,b){
   return r>150 && g>60 && g<175 && b<95 && (r-b)>65;
 }
-function npcTintCanvas(corClasse, dir){
-  // Cor fixa: usa o frame parado da direção (sem recoloração). corClasse fica para uso futuro (skins).
+// Mapeia um código de skin (os mesmos dos personagens jogáveis) -> conjunto de sprites.
+// Permite que NPCs/treinadores usem qualquer skin jogável (ex.: ninja_branco='nb', ninja_preto='np').
+function spriteSetPorSkin(skin){
+  switch(skin){
+    case 'f':  return SPRITE_ANIM_OBJ_F;
+    case 'l':  return SPRITE_ANIM_OBJ_L;
+    case 'lf': return SPRITE_ANIM_OBJ_LF;
+    case 'nb': return SPRITE_ANIM_OBJ_NB;
+    case 'np': return SPRITE_ANIM_OBJ_NP;
+    case 'ea': return SPRITE_ANIM_OBJ_EA;
+    case 'ev': return SPRITE_ANIM_OBJ_EV;
+    case 'es': return SPRITE_ANIM_OBJ_ES;
+    case 'pg': return SPRITE_ANIM_OBJ_PG;
+    default:   return SPRITE_ANIM_OBJ; // 'm' / sem skin = menino (padrão)
+  }
+}
+function npcTintCanvas(corClasse, dir, skin){
+  // Cor fixa: usa o frame parado da direção (sem recoloração). `skin` escolhe o conjunto de sprites.
   dir = dir||'baixo';
-  let chave = 'fix|'+dir;
+  let chave = 'fix|'+(skin||'m')+'|'+dir;
   if(NPC_TINT_CACHE[chave]) return NPC_TINT_CACHE[chave];
-  let d=SPRITE_ANIM_OBJ[dir]||SPRITE_ANIM_OBJ['baixo'];
+  let SET=spriteSetPorSkin(skin);
+  let d=SET[dir]||SET['baixo'];
   let base=d?d.parado:null;
   let cv=document.createElement('canvas'); cv.width=64; cv.height=64;
   let ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
@@ -2265,15 +2293,16 @@ function npcTintCanvas(corClasse, dir){
   ctx.drawImage(base,0,0,64,64);
   NPC_TINT_CACHE[chave]=cv; return cv;
 }
-function spriteNpcEl(corClasse, dirOuVirar){
+function spriteNpcEl(corClasse, dirOuVirar, skin){
   // dirOuVirar: direção ('cima'/'baixo'/'esquerda'/'direita') ou booleano (legado: ignorado, usa frente)
+  // skin: código opcional de personagem jogável (ex.: 'nb','np'); ausente = menino padrão.
   const wrap=document.createElement('div'); wrap.className='grid-pixel-char';
   const sh=document.createElement('div'); sh.className='char-shadow'; wrap.appendChild(sh);
   const cv=document.createElement('canvas'); cv.width=64; cv.height=64; wrap.appendChild(cv);
   let dir='baixo';
   if(typeof dirOuVirar==='string') dir=dirOuVirar;
   const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
-  let tint=npcTintCanvas(corClasse, dir);
+  let tint=npcTintCanvas(corClasse, dir, skin);
   if(tint) ctx.drawImage(tint,0,0);
   return wrap;
 }
@@ -2466,16 +2495,15 @@ function desenharMundo(){
     el.style.left=(baseX*TILE)+'px'; el.style.top=(baseY*TILE)+'px';
     divMapa.appendChild(el);
   });
-  // Treinadores NÃO somem: derrotados ficam, esmaecidos
-  listaTreinadores.forEach(t=>{ if(!personagemVisivel(t.x,t.y,playerInHouse))return;
+  // Treinadores inimigos SOMEM depois de perder a batalha (derrotado=true não é desenhado).
+  listaTreinadores.forEach(t=>{ if(t.derrotado)return; if(!personagemVisivel(t.x,t.y,playerInHouse))return;
     // treinadores DENTRO do labirinto (casa de pedra) com névoa ativa só aparecem perto do jogador
     let casaT=casaEm(t.x,t.y);
     if(playerInHouse && casaT && casaT.tipo==='pedra' && !labirintoLimpo){
       let perto = Math.abs(t.x-player.x)<=1 && Math.abs(t.y-player.y)<=1;
       if(!perto) return;
     }
-    let d=spriteNpcEl(t.corClasse, t.dir? t.dir : npcVirado);
-    if(t.derrotado)d.style.opacity='0.45';
+    let d=spriteNpcEl(t.corClasse, t.dir? t.dir : npcVirado, t.skin);
     d.style.left=(t.x*TILE)+'px'; d.style.top=(t.y*TILE)+'px'; divMapa.appendChild(d);});
   // NPCs decorativos de campo (sempre visíveis fora de casa)
   if(!playerInHouse)npcsCampo.forEach(n=>{ if(!personagemVisivel(n.x,n.y,playerInHouse))return;
@@ -2485,15 +2513,24 @@ function desenharMundo(){
       let set=spriteSetRival(); let sl=(set && set[n.dir||'baixo'])||(set&&set.baixo);
       d=charDeImagem(sl ? sl.parado : null);
     }
-    else if(n.spriteCustom==='policia' || n.spriteCustom==='professor' || n.spriteCustom==='sabio'){
-      let _img = n.spriteCustom==='professor' ? PROF_IMG : (n.spriteCustom==='sabio' ? SABIO_IMG : POLICIA_IMG);
+    else if(n.spriteCustom==='policia'){
+      // Policial: usa o sprite ANIMADO (4 direções) mostrando o LADO conforme n.dir.
+      // Fallback para a imagem estática de frente se o sprite direcional ainda não chegou.
+      let setP = (typeof carregarNpcAnim==='function') ? carregarNpcAnim('policial') : null;
+      let dir = n.dir || 'esquerda';
+      let slot = setP && (setP[dir] || setP.baixo);
+      let img = (slot && slot.parado && slot.parado.complete && slot.parado.naturalWidth) ? slot.parado : POLICIA_IMG;
+      d=charDeImagem(img);
+    }
+    else if(n.spriteCustom==='professor' || n.spriteCustom==='sabio'){
+      let _img = n.spriteCustom==='professor' ? PROF_IMG : SABIO_IMG;
       d=document.createElement('div'); d.className='grid-pixel-char';
       let sh=document.createElement('div'); sh.className='char-shadow'; d.appendChild(sh);
       let cv=document.createElement('canvas'); cv.width=64; cv.height=64; d.appendChild(cv);
       let ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
       if(_img.complete && _img.naturalWidth) ctx.drawImage(_img,0,0,64,64);
     } else {
-      d=spriteNpcEl(n.cor, n.dir? n.dir : npcVirado);
+      d=spriteNpcEl(n.cor, n.dir? n.dir : npcVirado, n.skin);
     }
     if(n.escala)d.style.transform='scale('+n.escala+')';
     d.style.left=(n.x*TILE)+'px'; d.style.top=(n.y*TILE)+'px'; divMapa.appendChild(d);});
@@ -2628,7 +2665,26 @@ Há treinadores espalhados pelas trilhas, Esferas perdidas no chão, uma Pokéma
 
 A jornada para completar a Pokédex começa agora.`;
 
-function montarIntro(){ $('story-text').innerText=STORY; }
+function montarIntro(){
+  $('story-text').innerText=STORY;
+  // intro começa na PARTE 1 (prólogo); a seleção de personagem só aparece após o OK
+  let p1=$('intro-prologo'), p2=$('intro-personagem');
+  if(p1) p1.style.display='block';
+  if(p2) p2.style.display='none';
+}
+// PARTE 1 -> PARTE 2: esconde o prólogo e mostra a seleção de personagem
+function irParaSelecao(){
+  let p1=$('intro-prologo'), p2=$('intro-personagem');
+  if(p1) p1.style.display='none';
+  if(p2) p2.style.display='block';
+  if(typeof atualizarPreviewIntro==='function') atualizarPreviewIntro();
+}
+// volta da seleção para o prólogo
+function voltarPrologo(){
+  let p1=$('intro-prologo'), p2=$('intro-personagem');
+  if(p2) p2.style.display='none';
+  if(p1) p1.style.display='block';
+}
 function comecarJornada(){
   // garante que o nome digitado (ou o padrão do personagem) seja capturado
   const campo=document.getElementById('nome-jogador-intro');
@@ -2945,9 +3001,9 @@ function forcarMovimento(letra){
     mostrarAviso("Escolha primeiro uma das Esferas na mesa do Prof. Cedro (use [E]).");
     return;
   }
-  // Treinador no caminho: bloqueia. Se ainda não foi derrotado, inicia batalha.
-  let tNoTile=listaTreinadores.find(t=>t.x===px&&t.y===py);
-  if(tNoTile){ if(!tNoTile.derrotado){ desenharMundo(); iniciarBatalhaTreinador(tNoTile); } return; }
+  // Treinador no caminho: bloqueia e inicia batalha. Derrotados somem e liberam a passagem.
+  let tNoTile=listaTreinadores.find(t=>t.x===px&&t.y===py&&!t.derrotado);
+  if(tNoTile){ desenharMundo(); iniciarBatalhaTreinador(tNoTile); return; }
   // Passo válido: avança quadro da caminhada + bob
   let _set=spriteSetAtual(); let _arr=(_set[direcaoAtual]&&_set[direcaoAtual].andar)||[];
   let _len=_arr.length||7;
@@ -3376,7 +3432,7 @@ function verificarEvolucao(){let pkm=pkmAtivoJogador; if(!pkm.evo)return false;
     }}
     return `O QUE?! ${antigo} evoluiu para ${pkm.nome}!`;}
   return false;}
-function fimCicloInimigo(){clearInterval(loopATB); let xp=pkmInimigo.level*10;
+function fimCicloInimigo(){clearInterval(loopATB); let xp=Math.max(1,Math.round(pkmInimigo.level*10/2)); // XP reduzida pela metade
   if(batalhaTreinador){indexInimigoEquipe++;
     if(indexInimigoEquipe<treinadorAtual.pokemons.length){
       setTimeout(()=>{pkmInimigo=criarInstanciaPokemon(treinadorAtual.pokemons[indexInimigoEquipe].n,treinadorAtual.pokemons[indexInimigoEquipe].lvl);
@@ -3653,6 +3709,7 @@ function inicializarJogo(){
   divMapa.style.gridTemplateColumns=`repeat(${LARGURA_MAPA}, ${TILE}px)`;
   divMapa.style.gridTemplateRows=`repeat(${ALTURA_MAPA}, ${TILE}px)`;
   desenharMundo(); atualizarChips(); montarIntro(); montarCustomizacao();
+  let elVer=$('versao-jogo'); if(elVer) elVer.textContent='v'+VERSAO_JOGO;
   if(existeSave()){ let b=$('btn-continuar'); if(b) b.style.display='block'; }
   ajustarEscala();
 }

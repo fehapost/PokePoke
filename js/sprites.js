@@ -140,10 +140,28 @@ function carregarNPCs(redesenhar){
 // para quando o "andar" for ativado.
 const NPC_ANIM_OBJ = {};
 const _NPC_ANIM_PASTA = { policial:'policial', professor:'professor' };
+// Os arquivos dos NPCs animados usam nomes completos de direção (frente/costas/esquerda/direita),
+// diferente dos personagens jogáveis (frente/tras/esq/dir). Mapa próprio para eles:
+const _DIRFILE_ANIM = { baixo:'frente', cima:'costas', esquerda:'esquerda', direita:'direita' };
+function montarSpriteSetAnim(baseDir, nFramesAndar){
+  const set = {};
+  ['baixo','cima','direita','esquerda'].forEach(dir=>{
+    const pre = _DIRFILE_ANIM[dir];
+    const slot = { parado:null, andar:[] };
+    carregarImagem(`${baseDir}/${pre}_0.png`, im=>slot.parado=im);
+    for(let i=1;i<=nFramesAndar;i++){
+      const idx=i-1;
+      slot.andar[idx]=null;
+      carregarImagem(`${baseDir}/${pre}_${i}.png`, im=>slot.andar[idx]=im);
+    }
+    set[dir]=slot;
+  });
+  return set;
+}
 function carregarNpcAnim(nome){
   if(NPC_ANIM_OBJ[nome]) return NPC_ANIM_OBJ[nome];
   const pasta = _NPC_ANIM_PASTA[nome];
   if(!pasta) return null;
-  NPC_ANIM_OBJ[nome] = montarSpriteSet(`assets/npcs_animados/${pasta}`,4);
+  NPC_ANIM_OBJ[nome] = montarSpriteSetAnim(`assets/npcs_animados/${pasta}`,4);
   return NPC_ANIM_OBJ[nome];
 }
