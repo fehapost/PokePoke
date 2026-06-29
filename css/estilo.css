@@ -13,10 +13,11 @@ body{
     var(--bg);
   color:var(--ink); font-family:var(--font); margin:0; user-select:none;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  min-height:100vh; padding:18px; -webkit-tap-highlight-color:transparent;
+  min-height:100vh; min-height:100dvh; padding:6px; overflow:hidden; -webkit-tap-highlight-color:transparent;
 }
+/* a escala/deslocamento do .app são definidos por ajustarEscala() (cabe na tela, inclusive mobile deitado) */
 .app{display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:940px;
-  transform:translateY(8vh)}   /* desce o aplicativo ~10% na tela */
+  transform-origin:center center; will-change:transform}
 .game-row{display:flex; gap:14px; align-items:center; width:100%; justify-content:center}   /* controles centralizados na vertical */
 
 /* Right sidebar */
@@ -680,8 +681,8 @@ body{
 .btn-circ.bag{background:#c08a3e; color:#2a1c08; border-color:#c08a3e}
 
 /* Config / intro modals */
-.modal{position:absolute; inset:0; z-index:5000; display:none; align-items:center; justify-content:center;
-  background:rgba(6,9,16,.78); backdrop-filter:blur(3px); padding:20px}
+.modal{position:fixed; inset:0; z-index:5000; display:none; align-items:center; justify-content:center;
+  background:rgba(6,9,16,.78); backdrop-filter:blur(3px); padding:20px; overflow-y:auto}
 .modal .sheet{width:100%; max-width:420px; background:linear-gradient(180deg,var(--panel),var(--panel2));
   border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:var(--shadow)}
 .sheet h3{margin:0 0 4px; font-size:16px} .sheet p{color:var(--muted); font-size:12.5px; line-height:1.5; margin:6px 0}
@@ -707,11 +708,12 @@ body{
 .stat-table td{padding:5px 6px; border-bottom:1px solid var(--line); color:var(--muted)}
 .stat-table tbody tr:last-child td{border-bottom:none}
 .kbd{background:var(--panel2); border:1px solid var(--line); border-radius:5px; padding:1px 6px; font-size:10px; font-weight:700}
-@media(max-width:720px){
+/* Retrato estreito: empilha. (No modo deitado a tela inteira é escalada por ajustarEscala) */
+@media(max-width:720px) and (orientation:portrait){
   .game-row{flex-direction:column; align-items:center}
   .sidebar{width:100%; flex-direction:row; flex-wrap:wrap; align-items:center}
   .sidebar .brand{flex:1 1 100%}
   .side-chips{flex-direction:row; flex:1 1 auto}
-  .side-actions{flex-direction:row; flex-wrap:wrap; margin-top:0}
+  .sidebar .vg-acoes{margin-top:0}
   #viewport,#controles{width:100%; max-width:540px}
 }

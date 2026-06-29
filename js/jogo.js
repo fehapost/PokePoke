@@ -3630,6 +3630,22 @@ setInterval(()=>{
 }, 60);
 
 /* ============ INIT ============ */
+// Escala o app inteiro para caber na tela (resolve corte no topo em mobile deitado).
+// Os modais ficam fora do .app, então não são afetados (continuam em tela cheia).
+function ajustarEscala(){
+  const app=document.querySelector('.app'); if(!app) return;
+  app.style.transform='none';
+  const w=app.offsetWidth, h=app.offsetHeight; if(!w||!h) return;
+  const availW=window.innerWidth, availH=window.innerHeight;
+  let scale=Math.min((availW-6)/w, (availH-6)/h, 1);
+  // desce um pouco só quando sobra altura (desktop); no mobile fica centralizado p/ caber
+  let folga=availH - h*scale;
+  let ty=(scale>=0.999 && folga>140) ? Math.min(folga*0.16, 70) : 0;
+  app.style.transform = ty ? `translateY(${ty}px) scale(${scale})` : `scale(${scale})`;
+}
+window.addEventListener('resize', ajustarEscala);
+window.addEventListener('orientationchange', ()=>{ setTimeout(ajustarEscala,200); setTimeout(ajustarEscala,500); });
+
 function inicializarJogo(){
   colocarPlacas();
   renderizarJogador();
@@ -3637,5 +3653,7 @@ function inicializarJogo(){
   divMapa.style.gridTemplateRows=`repeat(${ALTURA_MAPA}, ${TILE}px)`;
   desenharMundo(); atualizarChips(); montarIntro(); montarCustomizacao();
   if(existeSave()){ let b=$('btn-continuar'); if(b) b.style.display='block'; }
+  ajustarEscala();
 }
 inicializarJogo();
+setTimeout(ajustarEscala, 100);
