@@ -3635,7 +3635,8 @@ setInterval(()=>{
 function ajustarEscala(){
   const app=document.querySelector('.app'); if(!app) return;
   app.style.transform='none';
-  const w=app.offsetWidth, h=app.offsetHeight; if(!w||!h) return;
+  // mede a largura/altura REAIS do conteúdo (evita corte quando os controles são largos)
+  const w=Math.max(app.offsetWidth, app.scrollWidth), h=Math.max(app.offsetHeight, app.scrollHeight); if(!w||!h) return;
   const availW=window.innerWidth, availH=window.innerHeight;
   let scale=Math.min((availW-6)/w, (availH-6)/h, 1);
   // desce um pouco só quando sobra altura (desktop); no mobile fica centralizado p/ caber
