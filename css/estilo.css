@@ -21,7 +21,7 @@ body{
 .game-row{display:flex; gap:14px; align-items:center; width:100%; justify-content:center}   /* controles centralizados na vertical */
 
 /* Right sidebar */
-.sidebar{width:180px; display:flex; flex-direction:column; gap:12px;
+.sidebar{width:230px; display:flex; flex-direction:column; gap:12px;
   background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
   border-radius:14px; padding:14px; box-shadow:var(--shadow)}
 .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px}
@@ -629,22 +629,22 @@ body{
 .btn-tipo .atalho{background:rgba(0,0,0,.28); color:#fff}
 
 /* Controls (coluna à esquerda do mapa) */
-#controles{width:160px; flex:0 0 auto; display:flex; flex-direction:column; gap:14px; align-items:center; justify-content:flex-start;
+#controles{width:auto; flex:0 0 auto; display:flex; flex-direction:column; gap:14px; align-items:center; justify-content:flex-start;
   background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
   border-radius:14px; padding:14px 12px; box-shadow:var(--shadow)}
-.d-pad{display:grid; grid-template-columns:repeat(3,42px); grid-template-rows:repeat(3,42px); gap:4px}
+.d-pad{display:grid; grid-template-columns:repeat(3,84px); grid-template-rows:repeat(3,84px); gap:8px}
 /* Layout estilo controle: d-pad na esquerda; cluster de ações foi para a direita */
 #controles{justify-content:center}
-.vg-acoes{display:flex; flex-direction:column; gap:12px; align-items:center; width:100%}
+.vg-acoes{display:flex; flex-direction:column; gap:18px; align-items:center; width:100%}
 .sidebar .vg-acoes{margin-top:auto; margin-bottom:6px}   /* desce os botões da direita */
 .vg-ab{display:flex; gap:16px; justify-content:center}
-.vg-cluster{display:grid; grid-template-columns:repeat(2,auto); gap:8px 16px; justify-items:center}
+.vg-cluster{display:grid; grid-template-columns:repeat(2,auto); gap:14px 24px; justify-items:center}
 .vg-btn{display:flex; flex-direction:column; align-items:center; gap:3px}
-.vg-btn span{font-size:9px; font-weight:700; color:var(--muted); letter-spacing:.2px}
+.vg-btn span{font-size:15px; font-weight:700; color:var(--muted); letter-spacing:.2px}
 .d-pad{margin-top:6px}
 .btn-circ.map{background:#8a5cff; color:#fff; border-color:#8a5cff}
 .btn-circ.music{background:#7c5cff; color:#fff; border-color:#7c5cff}
-.btn-circ.opcoes{background:var(--panel2); color:var(--ink); border:1px solid var(--line); font-size:21px}
+.btn-circ.opcoes{background:var(--panel2); color:var(--ink); border:1px solid var(--line); font-size:36px}
 .btn-circ.opcoes:hover{border-color:var(--accent)}
 /* controles de quantidade do carrinho da loja */
 .qty-ctrl{display:flex; align-items:center; gap:7px; flex:0 0 auto}
@@ -652,8 +652,8 @@ body{
   color:var(--ink); font-weight:800; font-size:17px; cursor:pointer; line-height:1; display:grid; place-items:center}
 .qty-btn:hover{border-color:var(--accent)} .qty-btn:active{transform:translateY(1px)}
 .qty-num{min-width:24px; text-align:center; font-weight:800; font-size:15px}
-.btn-circ{flex:0 0 auto; width:44px; height:44px; border-radius:50%; border:1px solid var(--line); cursor:pointer;
-  font-weight:800; font-size:15px; display:grid; place-items:center; line-height:1;
+.btn-circ{flex:0 0 auto; width:88px; height:88px; border-radius:50%; border:1px solid var(--line); cursor:pointer;
+  font-weight:800; font-size:28px; display:grid; place-items:center; line-height:1;
   background:var(--panel2); color:var(--ink); box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .btn-circ:active{transform:translateY(1px)}
 .btn-circ.act{background:var(--accent); color:#fff; border-color:var(--accent)}
@@ -664,20 +664,20 @@ body{
 .btn-circ.save{background:#5b8cff; color:#fff; border-color:#5b8cff; font-size:18px}
 .btn-circ.music{background:#7c5cff; color:#fff; border-color:#7c5cff; font-size:18px}
 .btn-dir{background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:9px;
-  font-weight:700; cursor:pointer; display:grid; place-items:center; font-size:13px}
+  font-weight:700; cursor:pointer; display:grid; place-items:center; font-size:22px}
 .btn-dir:active{background:var(--accent); color:#fff}
 .btn-dir.center{background:#0c1220; color:var(--accent)}
 /* setas de movimento: azul (destaque) */
-.btn-dir.arrow{background:var(--accent); color:#fff; border-color:var(--accent); font-size:16px}
+.btn-dir.arrow{background:var(--accent); color:#fff; border-color:var(--accent); font-size:30px}
 .btn-dir.arrow:active{filter:brightness(1.15)}
 /* Q e E: redondos */
 .btn-dir.round{border-radius:50%}
-.btn-dir.alt{background:#222a3d; color:var(--gold); font-weight:800; font-size:13px}
-.btn-dir.act2{background:#0c1220; color:var(--accent); font-weight:800; font-size:15px}
+.btn-dir.alt{background:#222a3d; color:var(--gold); font-weight:800; font-size:24px}
+.btn-dir.act2{background:#0c1220; color:var(--accent); font-weight:800; font-size:28px}
 /* Espaço: linha própria abaixo do ↓, largura de 3 botões */
-.d-pad{grid-template-rows:repeat(3,42px) 36px}
-.btn-dir.esp-wide{grid-column:1 / -1; height:36px; border-radius:9px;
-  background:#222a3d; color:var(--gold); font-weight:800; font-size:12px; letter-spacing:.5px}
+.d-pad{grid-template-rows:repeat(3,84px) 72px}
+.btn-dir.esp-wide{grid-column:1 / -1; height:72px; border-radius:12px;
+  background:#222a3d; color:var(--gold); font-weight:800; font-size:22px; letter-spacing:.5px}
 .btn-circ.bag{background:#c08a3e; color:#2a1c08; border-color:#c08a3e}
 
 /* Config / intro modals */
