@@ -2,7 +2,7 @@
 /* ============ STATE ============ */
 // Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
 // Bump aqui a cada mudança que você quiser marcar como nova versão.
-const VERSAO_JOGO='1.2.0';
+const VERSAO_JOGO='1.3.0';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -172,7 +172,7 @@ function carregarJogo(){
 }
 
 /* ============ AUDIO ============ */
-let audioCtx=null, loopAudio=null, volMestre=0.5, mutado=false;
+let audioCtx=null, loopAudio=null, volMestre=0.25, mutado=false; // música começa a 25%
 function alternarConfig(){const m=$('modal-configuracoes'); m.style.display=m.style.display==='flex'?'none':'flex';}
 // fecha o menu Opções e executa a ação escolhida (Time/Dex/Visual/Mapa/Salvar)
 function opcaoMenu(fn){ $('modal-configuracoes').style.display='none'; if(typeof fn==='function') fn(); }
@@ -3473,25 +3473,40 @@ function turnoInimigo(){
   },1000);
   fxTimers.push(t);
 }
-function verificarEvolucao(){let pkm=pkmAtivoJogador; if(!pkm.evo)return false;
-  let nf=BASE_POKEMONS[pkm.evo]; if(!nf)return false;
-  // estágio do destino define o nível exigido: estágio 2 ≥15, estágio 3 ≥30
-  let exigido = nf.estagio>=3 ? 30 : 15;
-  if(pkm.level>=exigido){let antigo=pkm.nome;
-    pkm.id=nf.id;pkm.nome=nf.nome;pkm.tipo=nf.tipo;pkm.tipo2=nf.tipo2;pkm.raridade=nf.raridade;pkm.estagio=nf.estagio;
-    pkm.evo=nf.evo;pkm.sprite=nf.sprite;pkm.back=nf.back;
-    // troca as BASES — atributos derivados recalculam sozinhos
-    pkm.baseAtk=nf.atkBase; pkm.baseDef=nf.defBase; pkm.baseVel=nf.velBase; pkm.hpBase=nf.hpBase;
-    pkm.hp=pkm.hpMax; // cura ao evoluir
-    registroDex[pkm.nome]='capturado';
-    // se o Pokémon que evoluiu é o líder da equipe e tem sprite de campo, troca o sprite do companheiro
-    if(companheiro && equipeAtiva[0]===pkm){ carregarMon(pkm.nome); if(MON_OBJ[pkm.nome]){
-      companheiro.nome=pkm.nome; companheiro.walkFrame=0; companheiro.andandoAte=0;
-      if(typeof renderizarCompanheiro==='function') renderizarCompanheiro();
-    }}
-    return `O QUE?! ${antigo} evoluiu para ${pkm.nome}!`;}
-  return false;}
-function fimCicloInimigo(){clearInterval(loopATB); let xp=Math.max(1,Math.round(pkmInimigo.level*10/2)); // XP reduzida pela metade
+// Alvo de evolução de um pokémon (BASE do destino) ou null. Exige nível mínimo por estágio.
+function evolucaoAlvo(pkm){ if(!pkm||!pkm.evo) return null; let nf=BASE_POKEMONS[pkm.evo]; if(!nf) return null;
+  let exigido = nf.estagio>=3 ? 30 : 15; return pkm.level>=exigido ? nf : null; }
+// Aplica a evolução (muta o pokémon para a forma nf). Retorna o nome antigo.
+function aplicarEvolucao(pkm, nf){ let antigo=pkm.nome;
+  pkm.id=nf.id;pkm.nome=nf.nome;pkm.tipo=nf.tipo;pkm.tipo2=nf.tipo2;pkm.raridade=nf.raridade;pkm.estagio=nf.estagio;
+  pkm.evo=nf.evo;pkm.sprite=nf.sprite;pkm.back=nf.back;
+  pkm.baseAtk=nf.atkBase; pkm.baseDef=nf.defBase; pkm.baseVel=nf.velBase; pkm.hpBase=nf.hpBase;
+  pkm.hp=pkm.hpMax; registroDex[pkm.nome]='capturado';
+  // se o líder da equipe evoluiu, atualiza o sprite do companheiro no mapa
+  if(companheiro && equipeAtiva[0]===pkm){ carregarMon(pkm.nome); if(MON_OBJ[pkm.nome]){
+    companheiro.nome=pkm.nome; companheiro.walkFrame=0; companheiro.andandoAte=0;
+    if(typeof renderizarCompanheiro==='function') renderizarCompanheiro();
+  }}
+  return antigo; }
+// Distribui XP pela equipe: 70% do total para quem venceu + 50% do total dividido entre TODOS na mão.
+// Aplica os level-ups e retorna {subiuWinner, antesWinner, winnerGanho, fila:[{pkm,pre,nf}]}.
+function aplicarXpDistribuido(base){
+  let party=equipeAtiva.slice(); let n=Math.max(1,party.length);
+  let compartilhado=Math.max(0,Math.round(base*0.5/n));
+  let bonusVencedor=Math.max(0,Math.round(base*0.7));
+  let fila=[], subiuWinner=false, antesWinner=null, winnerGanho=0;
+  party.forEach(p=>{
+    let ganho=compartilhado + (p===pkmAtivoJogador?bonusVencedor:0);
+    if(p===pkmAtivoJogador){ antesWinner={atk:p.statAtk,def:p.statDef,vel:p.statVel,hp:p.hpMax}; winnerGanho=ganho; }
+    if(ganho<=0) return;
+    p.xp+=ganho;
+    while(p.xp>=p.xpNecessario){ p.xp-=p.xpNecessario; let hpA=p.hpMax; p.level++; p.hp+=(p.hpMax-hpA); p.hp=Math.min(p.hp,p.hpMax); if(p===pkmAtivoJogador) subiuWinner=true; }
+    let nf=evolucaoAlvo(p);
+    if(nf) fila.push({pkm:p, pre:{sprite:p.sprite, nome:p.nome, tipo:p.tipo, raridade:p.raridade}, nf:nf});
+  });
+  return {subiuWinner, antesWinner, winnerGanho, fila};
+}
+function fimCicloInimigo(){clearInterval(loopATB); let xp=Math.max(1,Math.round(pkmInimigo.level*10/4)); // XP de vitória reduzida (metade da metade)
   if(batalhaTreinador){indexInimigoEquipe++;
     if(indexInimigoEquipe<treinadorAtual.pokemons.length){
       setTimeout(()=>{pkmInimigo=criarInstanciaPokemon(treinadorAtual.pokemons[indexInimigoEquipe].n,treinadorAtual.pokemons[indexInimigoEquipe].lvl);
@@ -3519,31 +3534,75 @@ function fimCicloInimigo(){clearInterval(loopATB); let xp=Math.max(1,Math.round(
 function receberXp(qtd,lider,premio,nomeTreinador){
   if(premio>0){dinheiro+=premio; atualizarChips();}
   let linhaPremio=premio>0?` Recebeu ₽${premio}.`:'';
-  textoBatalha.innerText=`${pkmAtivoJogador.nome} venceu! +${qtd} XP.${linhaPremio}`; pkmAtivoJogador.xp+=qtd; atualizarHps();
-  setTimeout(()=>{let subiu=false,evo=false;
-    let antesAtk=pkmAtivoJogador.statAtk, antesDef=pkmAtivoJogador.statDef, antesVel=pkmAtivoJogador.statVel, antesHp=pkmAtivoJogador.hpMax;
-    while(pkmAtivoJogador.xp>=pkmAtivoJogador.xpNecessario){pkmAtivoJogador.xp-=pkmAtivoJogador.xpNecessario;
-      let hpAntes=pkmAtivoJogador.hpMax; pkmAtivoJogador.level++;
-      pkmAtivoJogador.hp += (pkmAtivoJogador.hpMax - hpAntes);
-      pkmAtivoJogador.hp = Math.min(pkmAtivoJogador.hp, pkmAtivoJogador.hpMax);
-      subiu=true; evo=verificarEvolucao()||evo;}
-    let venceuLider=lider?"🏆 Você derrotou o Líder Bruno e conquistou a Insígnia Punho!":"";
-    if(subiu){
+  let antesA=pkmAtivoJogador.statAtk, antesD=pkmAtivoJogador.statDef, antesV=pkmAtivoJogador.statVel, antesH=pkmAtivoJogador.hpMax;
+  let r=aplicarXpDistribuido(qtd);   // 70% p/ o vencedor + 50% dividido entre toda a equipe
+  textoBatalha.innerText=`${pkmAtivoJogador.nome} venceu! +${r.winnerGanho} XP (equipe recebeu XP dividida).${linhaPremio}`;
+  atualizarHps();
+  setTimeout(()=>{
+    let venceuLider=lider?"🏆 Você derrotou o Líder e conquistou a Insígnia!":"";
+    let aoFim=()=>{ processarFilaEvolucao(r.fila, ()=>fecharBatalha("Vitória!",false)); };
+    if(r.subiuWinner){
       atualizarHps(); montarArena(); sfx(700,0.1); setTimeout(()=>sfx(900,0.14),120);
-      let cab = evo ? evo : `✨ LEVEL UP! ${pkmAtivoJogador.nome} → Lv.${pkmAtivoJogador.level}`;
-      // tabulado, um stat por linha
-      let tab = `Ataque    ${antesAtk} -> ${pkmAtivoJogador.statAtk}\n`
-              + `Defesa    ${antesDef} -> ${pkmAtivoJogador.statDef}\n`
-              + `Velocidade ${antesVel} -> ${pkmAtivoJogador.statVel}\n`
-              + `Vida      ${antesHp} -> ${pkmAtivoJogador.hpMax}`;
+      let tab = `Ataque    ${antesA} -> ${pkmAtivoJogador.statAtk}\n`
+              + `Defesa    ${antesD} -> ${pkmAtivoJogador.statDef}\n`
+              + `Velocidade ${antesV} -> ${pkmAtivoJogador.statVel}\n`
+              + `Vida      ${antesH} -> ${pkmAtivoJogador.hpMax}`;
       painelBotoes.innerHTML='';
       textoBatalha.classList.add('levelup-box');
-      textoBatalha.innerText = cab + "\n" + tab + (venceuLider?("\n"+venceuLider):"");
-      setTimeout(()=>{ textoBatalha.classList.remove('levelup-box'); fecharBatalha("Vitória!",false); }, 2600);
+      textoBatalha.innerText = `✨ LEVEL UP! ${pkmAtivoJogador.nome} → Lv.${pkmAtivoJogador.level}\n` + tab + (venceuLider?("\n"+venceuLider):"");
+      setTimeout(()=>{ textoBatalha.classList.remove('levelup-box'); aoFim(); }, 2600);
     }
-    else if(venceuLider){ textoBatalha.innerText="Vitória! "+venceuLider; setTimeout(()=>fecharBatalha("Vitória!",false),1800); }
-    else fecharBatalha("Vitória!",false);
+    else if(venceuLider){ textoBatalha.innerText="Vitória! "+venceuLider; setTimeout(aoFim,1800); }
+    else aoFim();
   },1400);
+}
+// Toca, em sequência, a cutscene de evolução de cada pokémon da fila; depois chama onDone.
+function processarFilaEvolucao(fila, onDone){
+  if(!fila || !fila.length){ if(onDone) onDone(); return; }
+  let item=fila.shift();
+  // pula se já não evolui mais (segurança)
+  animarEvolucao(item.pkm, item.pre, item.nf, ()=>processarFilaEvolucao(fila, onDone));
+}
+// ===== Cutscene de EVOLUÇÃO =====
+// Pisca entre a cor do Pokémon (raridade) e a cor do tipo + branco/preto (estilo encontro);
+// alterna a silhueta entre a forma 1 e a forma 2, acelerando, e revela a evolução colorida.
+let _evoOnDone=null;
+function animarEvolucao(pkm, pre, nf, onDone){
+  _evoOnDone=onDone;
+  let tela=$('evolucao-tela'), img=$('evo-sprite'), txt=$('evo-text'), prompt=$('evo-prompt'), okBtn=$('evo-ok');
+  if(!tela){ aplicarEvolucao(pkm, nf); if(onDone)onDone(); return; }   // fallback se a tela não existir
+  let corTipo=(typeof CORES_TIPO!=='undefined' && CORES_TIPO[pre.tipo])||'#9CA3AF';
+  let corMon=(RARIDADE_INFO[pre.raridade]||{}).cor||corTipo;
+  tela.style.setProperty('--evo-c1',corMon);
+  tela.style.setProperty('--evo-c2',corTipo);
+  tela.classList.remove('evo-revela'); tela.style.display='flex';
+  txt.innerText='Evoluindo...'; prompt.style.display='none';
+  img.classList.remove('silhueta'); img.src=pre.sprite;   // mostra a forma 1 colorida ("Evoluindo...")
+  if(typeof sfx==='function') sfx(440,0.12);
+  let toggles=0, mostrandoPre=true, intervalo=440;
+  function passo(){
+    img.classList.add('silhueta');                       // a partir daqui, silhuetas piscando
+    mostrandoPre=!mostrandoPre;
+    img.src = mostrandoPre ? pre.sprite : nf.sprite;     // alterna silhueta 1 <-> 2
+    if(typeof sfx==='function') sfx(mostrandoPre?500:640,0.05);
+    toggles++; intervalo=Math.max(80, intervalo-30);
+    if(toggles<14){ let t=setTimeout(passo,intervalo); if(typeof fxTimers!=='undefined')fxTimers.push(t); }
+    else {
+      // revelação: forma 2 colorida + aplica a evolução de fato
+      img.classList.remove('silhueta'); img.src=nf.sprite;
+      tela.classList.add('evo-revela');
+      let antigo=aplicarEvolucao(pkm, nf);
+      if(typeof sfx==='function'){ sfx(660,0.14); setTimeout(()=>sfx(880,0.16),150); setTimeout(()=>sfx(1046,0.22),320); }
+      txt.innerText=`Parabéns! ${antigo} evoluiu para ${pkm.nome}!`;
+      prompt.style.display='flex';
+      if(okBtn) okBtn.focus();
+    }
+  }
+  let t0=setTimeout(passo,600); if(typeof fxTimers!=='undefined')fxTimers.push(t0);
+}
+function fecharEvolucao(){
+  let tela=$('evolucao-tela'); if(tela){ tela.classList.remove('evo-revela'); tela.style.display='none'; }
+  let cb=_evoOnDone; _evoOnDone=null; if(cb) cb();
 }
 async function usarPokebola(tipoBola){
   tipoBola=tipoBola||'poke';
@@ -3558,10 +3617,13 @@ async function usarPokebola(tipoBola){
   await new Promise(r=>setTimeout(r,800));
   for(let i=0;i<=alvo;i+=10){txtCaptura.innerText=i+'%'; sfx(500+i,0.04); await new Promise(r=>setTimeout(r,180));}
   if(sucesso){txtCaptura.innerText='Capturado!'; sfx(660,0.12); setTimeout(()=>sfx(880,0.15),140); await new Promise(r=>setTimeout(r,900));
+    // XP por captura: mesma distribuição (70% p/ o ativo + 50% dividido pela equipe), antes de adicionar o capturado
+    let baseCap=Math.max(1,Math.round(pkmInimigo.level*10/4));
+    let rc=aplicarXpDistribuido(baseCap);
     registroDex[pkmInimigo.nome]='capturado'; if(equipeAtiva.length<6)equipeAtiva.push(pkmInimigo); else caixaPC.push(pkmInimigo);
     if(pokemonFixoAtual){ pokemonFixoAtual.derrotado=true; pokemonFixoAtual=null; }
-    txtCaptura.style.display='none'; clearInterval(loopATB); atualizarChips();
-    mostrarAviso(`🎉 ${pkmInimigo.nome} foi capturado com a ${info.nome}!`,()=>fecharBatalha("Capturado!",false));
+    txtCaptura.style.display='none'; clearInterval(loopATB); atualizarChips(); atualizarHps();
+    mostrarAviso(`🎉 ${pkmInimigo.nome} foi capturado com a ${info.nome}!\nA equipe ganhou +${rc.winnerGanho} XP.`,()=>{ processarFilaEvolucao(rc.fila, ()=>fecharBatalha("Capturado!",false)); });
   }else{let fugiu=Math.random()<0.3; txtCaptura.innerText=fugiu?'Fugiu!':'Escapou!'; await new Promise(r=>setTimeout(r,900));
     txtCaptura.style.display='none'; bolaAnimada.classList.remove('voo-bola');
     if(fugiu){clearInterval(loopATB); textoBatalha.innerText="Ele fugiu!"; setTimeout(()=>fecharBatalha("Fugiu!",false),1400);}

@@ -518,6 +518,28 @@ body{
 #ei-prompt .piscar-texto{background:rgba(6,9,16,.7); border:1px solid var(--ei-cor,#9CA3AF);
   padding:8px 18px; border-radius:999px; box-shadow:0 0 16px var(--ei-cor,#9CA3AF)55}
 
+/* Tela de EVOLUÇÃO — pisca entre a cor do Pokémon (--evo-c1), a cor do tipo (--evo-c2) e branco/preto */
+#evolucao-tela{position:absolute; inset:0; z-index:760; display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:14px; border-radius:18px; overflow:hidden;
+  background:#06090f; animation:evoBg .42s steps(1,end) infinite}
+@keyframes evoBg{
+  0%{background:#06090f} 20%{background:var(--evo-c1,#888)} 40%{background:#f3f3f3}
+  60%{background:var(--evo-c2,#888)} 80%{background:#0a0a0a} 100%{background:#06090f}}
+#evolucao-tela.evo-revela{animation:none; background:radial-gradient(circle at 50% 42%, var(--evo-c2,#888) -15%, #06090f 60%)}
+#evolucao-tela .evo-content{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:14px}
+.evo-sprite-wrap{width:200px; height:200px; border-radius:50%; display:grid; place-items:center;
+  background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.16), transparent 70%)}
+#evo-sprite{width:160px; height:160px; image-rendering:pixelated; transition:filter .08s;
+  filter:drop-shadow(0 0 16px var(--evo-c2,#888))}
+#evo-sprite.silhueta{filter:brightness(0) drop-shadow(0 0 12px #fff)}
+#evolucao-tela.evo-revela #evo-sprite{animation:evoPop .5s cubic-bezier(.2,1.5,.5,1) both;
+  filter:drop-shadow(0 0 24px var(--evo-c2,#888))}
+@keyframes evoPop{0%{transform:scale(.4); opacity:.2}100%{transform:scale(1); opacity:1}}
+.evo-text{position:relative; z-index:2; font-size:16px; font-weight:800; letter-spacing:.4px; text-align:center;
+  color:#fff; text-shadow:0 2px 6px rgba(0,0,0,.85); padding:0 18px; white-space:pre-line}
+#evo-prompt{position:absolute; left:0; right:0; bottom:20px; z-index:3; display:none; justify-content:center}
+#evo-prompt #evo-ok{width:170px; height:42px}
+
 /* Battle screen */
 #tela-batalha{padding:0; overflow:hidden}
 .arena{flex:1; position:relative;

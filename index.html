@@ -67,6 +67,15 @@
       <div id="ei-prompt"><span class="piscar-texto">pressione [ESPAÇO] para batalhar</span></div>
     </div>
 
+    <!-- Tela de EVOLUÇÃO (pisca em cores + silhuetas alternando) -->
+    <div id="evolucao-tela">
+      <div class="evo-content">
+        <div class="evo-sprite-wrap"><img id="evo-sprite" src="" alt=""></div>
+        <div class="evo-text" id="evo-text">Evoluindo...</div>
+      </div>
+      <div id="evo-prompt"><button class="btn-acao" id="evo-ok" onclick="fecharEvolucao()">OK</button></div>
+    </div>
+
     <!-- Battle alert -->
     <div id="msg-centro-tela">
       <span class="big">⚔ ENCONTRO SELVAGEM</span>
@@ -179,8 +188,8 @@
       <button class="side-btn s-blue" onclick="opcaoMenu(salvarJogo)">💾 Salvar</button>
     </div>
     <div class="field">
-      <label>🎵 Volume — <span id="vol-txt">50%</span></label>
-      <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="mudarVolume(this.value)">
+      <label>🎵 Volume — <span id="vol-txt">25%</span></label>
+      <input type="range" id="vol-slider" min="0" max="100" value="25" oninput="mudarVolume(this.value)">
     </div>
     <div class="field">
       <label><input type="checkbox" id="check-mute" onchange="mutarSom(this.checked)"> Mutar som</label>
