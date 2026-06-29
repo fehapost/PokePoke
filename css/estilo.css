@@ -52,7 +52,7 @@ body{
 
 /* Viewport / world */
 #viewport{
-  width:675px; height:540px; background:#0d1322; position:relative; overflow:hidden;
+  width:810px; height:540px; background:#0d1322; position:relative; overflow:hidden;
   border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow);
 }
 #viewport:before{content:""; position:absolute; inset:0; z-index:300; pointer-events:none;
@@ -411,8 +411,8 @@ body{
   filter:drop-shadow(1px 2px 1px rgba(0,0,0,.45)); pointer-events:none}
 .grid-pixel-char canvas{width:38px; height:38px; image-rendering:pixelated; display:block;
   margin-bottom:-2px; transform:scaleY(0.9); transform-origin:bottom center} /* -15% largura, -10% altura */
-#player{z-index:99; top:255px; left:323px}
-#companheiro{z-index:98; top:255px; left:323px}
+#player{z-index:99; top:255px; left:390px}
+#companheiro{z-index:98; top:255px; left:390px}
 /* Pokémon que segue o jogador: −15% (sobre o scaleY(0.9) base) */
 #companheiro canvas{transform:scale(0.85, 0.765); transform-origin:bottom center}
 /* Folhas ao vento (efeito ao falar com os NPCs do cabelo): direita -> esquerda */

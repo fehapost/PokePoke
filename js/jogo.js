@@ -2067,7 +2067,7 @@ function renderizarCompanheiro(){
   desenharSpriteMon(cv, companheiro.nome, companheiro.dir, companheiro.walkFrame, andando);
   // o #player é fixo no centro (258,258) e o mapa se move; posiciona o companheiro
   // relativo ao jogador, pelo deslocamento em tiles.
-  el.style.left=(323 + (companheiro.x - player.x)*TILE)+'px';
+  el.style.left=(390 + (companheiro.x - player.x)*TILE)+'px';
   el.style.top=(255 + (companheiro.y - player.y)*TILE)+'px';
 }
 // Loop do companheiro: consome a fila de passos com atraso (COMP_DELAY) e
@@ -2547,7 +2547,7 @@ function charDeImagem(img, escala){
   if(escala) d.style.transform='scale('+escala+')';
   return d;
 }
-function atualizarCamera(){divMapa.style.left=(323-player.x*TILE)+'px'; divMapa.style.top=(255-player.y*TILE)+'px';}
+function atualizarCamera(){divMapa.style.left=(390-player.x*TILE)+'px'; divMapa.style.top=(255-player.y*TILE)+'px';}
 
 // ===== CARROS EM MOVIMENTO (direita -> esquerda, em linha reta) =====
 // Faixas de tráfego: linhas de asfalto longe do centro da ponte. x em tiles (float).
