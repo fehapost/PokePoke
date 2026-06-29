@@ -276,10 +276,13 @@
 <!-- Seleção de inicial (pop-up) -->
 <div id="modal-starter" class="modal">
   <div class="sheet" style="max-width:460px; text-align:center">
-    <h3 style="margin-bottom:2px">Escolha seu parceiro inicial</h3>
-    <p style="margin-top:0; color:var(--muted); font-size:12px">Atalhos: Q · W · E · R</p>
+    <h3 id="starter-titulo" style="margin-bottom:2px">Escolha seu parceiro inicial</h3>
+    <p id="starter-sub" style="margin-top:0; color:var(--muted); font-size:12px">Selecione um Pokémon e confirme.</p>
     <div id="starter-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:12px 0"></div>
-    <div class="hint">Toque em um Pokémon ou use o teclado.</div>
+    <div class="row-btns">
+      <button class="btn-acao btn-ghost" onclick="fecharStarterPopup()">Cancelar</button>
+      <button class="btn-acao" id="starter-ok" onclick="confirmarStarter()">OK</button>
+    </div>
   </div>
 </div>
 

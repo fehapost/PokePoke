@@ -2,7 +2,7 @@
 /* ============ STATE ============ */
 // Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
 // Bump aqui a cada mudança que você quiser marcar como nova versão.
-const VERSAO_JOGO='1.1.0';
+const VERSAO_JOGO='1.2.0';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -46,6 +46,23 @@ const FILTRO_BOLA={
 };
 // mesma esfera de sempre, só recolorida por tipo (filtro CSS)
 function bolaColoridaHTML(tipo){ return '<img src="'+POKEBALL_PNG+'" alt="bola" style="filter:'+(FILTRO_BOLA[tipo]||'none')+'">'; }
+// Esferas dos iniciais: uma cor por TIPO do Pokémon (recoloração da esfera vermelha padrão).
+// Bulbasaur(GRAMA) verde, Charmander(FOGO) laranja, Squirtle(ÁGUA) azul, Pikachu(ELÉTRICO) amarelo.
+const FILTRO_BOLA_TIPO={
+  GRAMA:   'hue-rotate(110deg) saturate(1.5)',
+  FOGO:    'hue-rotate(20deg) saturate(1.4) brightness(1.08)',
+  'ÁGUA':  'hue-rotate(205deg) saturate(1.6)',
+  'ELÉTRICO':'hue-rotate(60deg) saturate(1.9) brightness(1.2)'
+};
+function filtroBolaTipo(tp){ return FILTRO_BOLA_TIPO[tp]||'none'; }
+// HTML da esfera de um inicial. aberta=false -> fechada; aberta=true -> esfera ABERTA (após a escolha).
+function bolaStarterHTML(nome, aberta){
+  let tp=(BASE_POKEMONS[nome]||{}).tipo; let f=filtroBolaTipo(tp);
+  if(aberta){
+    return '<div class="bola-aberta" style="filter:'+f+'"><img class="ba-top" src="'+POKEBALL_PNG+'" alt=""><img class="ba-bot" src="'+POKEBALL_PNG+'" alt=""></div>';
+  }
+  return '<img src="'+POKEBALL_PNG+'" alt="bola" style="filter:'+f+'">';
+}
 let bolsa={poke:5, great:0, ultra:0, premier:0, master:0};
 let bolaSelecionada='poke';
 
@@ -2465,10 +2482,11 @@ function desenharMundo(){
   }
   divMapa.appendChild(frag);
 
-  // Esferas dos iniciais SOBRE A MESA DO PROFESSOR (lado a lado)
-  if(!inicialEscolhido && casaEm(player.x,player.y) && casaEm(player.x,player.y).tipo==='lab'){
-    STARTERS.forEach(s=>{let b=document.createElement('div'); b.className='item-bola';
-      b.innerHTML=ICONE_BOLA_HTML; b.style.left=(s.x*TILE)+'px'; b.style.top=(s.y*TILE)+'px'; divMapa.appendChild(b);});
+  // Esferas dos iniciais SOBRE A MESA DO PROFESSOR — uma cor por tipo.
+  // Antes da escolha: fechadas (interativas). Depois da escolha: ABERTAS (decorativas).
+  if(casaEm(player.x,player.y) && casaEm(player.x,player.y).tipo==='lab'){
+    STARTERS.forEach(s=>{let b=document.createElement('div'); b.className='item-bola'+(inicialEscolhido?' bola-aberta-wrap':'');
+      b.innerHTML=bolaStarterHTML(s.nome, inicialEscolhido); b.style.left=(s.x*TILE)+'px'; b.style.top=(s.y*TILE)+'px'; divMapa.appendChild(b);});
   }
   // Esferas espalhadas no chão (escondidas quando o jogador está dentro de casa)
   bolasNoChao.forEach(b=>{ if(!personagemVisivel(b.x,b.y,playerInHouse))return;
@@ -2746,7 +2764,14 @@ function interagirBotaoE(){
   // Escolher inicial: encarando uma Esfera/mesa na mesa do professor
   if(!inicialEscolhido){
     let s=STARTERS.find(s=>naFrente(s.x,s.y));
-    if(s || (tf===6 && casaEm(fx,fy)&&casaEm(fx,fy).tipo==='lab')){ abrirStarterPopup(); return; }
+    let mesaLab = (tf===6 && casaEm(fx,fy)&&casaEm(fx,fy).tipo==='lab');
+    if(s || mesaLab){
+      // Pikachu fica numa mesa separada (pedestal M10): popup só dele (ele ou cancelar).
+      // As outras 3 esferas abrem a escolha dos iniciais (escolher + OK/cancelar).
+      let pk=STARTERS.find(s=>s.nome==='Pikachu');
+      let ehPikachu = s ? (s.nome==='Pikachu') : (pk && fx===pk.x && fy===pk.y);
+      abrirStarterPopup(ehPikachu?'pikachu':'mesa'); return;
+    }
   }
   // Coletar Esfera à frente
   let idx=bolasNoChao.findIndex(b=>naFrente(b.x,b.y));
@@ -2808,24 +2833,56 @@ function escolherInicial(nome){inicialEscolhido=true; let pkm=criarInstanciaPoke
   mostrarAviso(`Você escolheu ${nome}!\n\nO Prof. te deu ₽500 e 5 Esferas. Saia pela porta abaixo e explore Nova Region.`);}
 
 let starterPopupAberto=false;
-function abrirStarterPopup(){
-  starterPopupAberto=true;
-  const grid=$('starter-grid'); grid.innerHTML='';
-  STARTERS.forEach(s=>{let b=BASE_POKEMONS[s.nome];
+let starterSelecionado=null;   // nome do Pokémon atualmente selecionado no popup
+let _starterCards={};          // nome -> elemento do card (p/ aplicar destaque)
+// cor de destaque pelo TIPO do Pokémon (Pikachu amarelo, Squirtle azul, Charmander laranja, Bulbasaur verde)
+function corTipo(nome){ let b=BASE_POKEMONS[nome]; return (b&&CORES_TIPO[b.tipo])||'var(--accent)'; }
+// realça/normaliza um card conforme estiver selecionado
+function _pintarCardStarter(nome){
+  let cor=corTipo(nome), el=_starterCards[nome]; if(!el)return;
+  let sel=(starterSelecionado===nome);
+  el.style.borderColor=cor;
+  el.style.borderWidth=sel?'4px':'3px';                                  // borda mais espessa, ainda mais no selecionado
+  el.style.boxShadow=sel?('0 0 0 2px '+cor+', 0 0 14px '+cor):'none';    // "contorno" extra quando selecionado
+}
+function selecionarStarter(nome){
+  starterSelecionado=nome;
+  Object.keys(_starterCards).forEach(_pintarCardStarter);
+  let ok=$('starter-ok'); if(ok) ok.disabled=false;
+}
+// modo: 'mesa' = os 3 iniciais (Bulbasaur/Charmander/Squirtle); 'pikachu' = só o Pikachu
+function abrirStarterPopup(modo){
+  modo = modo||'mesa';
+  starterPopupAberto=true; starterSelecionado=null; _starterCards={};
+  let lista = (modo==='pikachu') ? STARTERS.filter(s=>s.nome==='Pikachu')
+                                 : STARTERS.filter(s=>s.nome!=='Pikachu');
+  $('starter-titulo').innerText = (modo==='pikachu') ? 'Quer o Pikachu?' : 'Escolha seu parceiro inicial';
+  $('starter-sub').innerText    = (modo==='pikachu') ? 'Confirme em OK ou cancele.' : 'Selecione um Pokémon e confirme em OK.';
+  const grid=$('starter-grid');
+  grid.style.gridTemplateColumns = (lista.length===1) ? '1fr' : 'repeat(2,1fr)';
+  grid.innerHTML='';
+  lista.forEach(s=>{let b=BASE_POKEMONS[s.nome];
     let tipos=pillTipo(b.tipo)+(b.tipo2?' '+pillTipo(b.tipo2):'');
+    let cor=corTipo(s.nome);
     let card=document.createElement('div');
-    card.style.cssText='background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px; cursor:pointer; text-align:center; transition:border-color .12s';
-    card.onmouseenter=()=>card.style.borderColor='var(--accent)'; card.onmouseleave=()=>card.style.borderColor='var(--line)';
-    card.innerHTML=`<div style="font-size:11px; font-weight:800; color:var(--accent)">[${s.atalho}]</div>
+    card.style.cssText='background:var(--panel); border:3px solid '+cor+'; border-radius:12px; padding:10px; cursor:pointer; text-align:center; transition:border-color .12s, box-shadow .12s, border-width .12s';
+    card.innerHTML=`<div style="font-size:11px; font-weight:800; color:${cor}">[${s.atalho}]</div>
       <img src="${b.sprite}" style="width:64px; height:64px; image-rendering:pixelated"><div style="font-weight:700; font-size:13px">${b.nome}</div>
       <div style="margin:4px 0">${tipos}</div>
       <div style="font-size:10px; color:var(--muted)">⚔ Atq ${b.atkBase} · 🛡 Def ${b.defBase} · ⚡ Vel ${b.velBase}</div>`;
-    card.onclick=()=>escolherInicial(s.nome);
+    card.onclick=()=>selecionarStarter(s.nome);
+    _starterCards[s.nome]=card;
     grid.appendChild(card);
   });
+  // Pikachu: já vem pré-selecionado (a opção é ele ou cancelar)
+  if(modo==='pikachu') selecionarStarter('Pikachu');
+  else { let ok=$('starter-ok'); if(ok) ok.disabled=true; }
+  Object.keys(_starterCards).forEach(_pintarCardStarter);
   $('modal-starter').style.display='flex';
 }
-function fecharStarterPopup(){ starterPopupAberto=false; $('modal-starter').style.display='none'; }
+// OK: confirma o Pokémon selecionado
+function confirmarStarter(){ if(!starterSelecionado) return; escolherInicial(starterSelecionado); }
+function fecharStarterPopup(){ starterPopupAberto=false; starterSelecionado=null; $('modal-starter').style.display='none'; }
 
 /* ============ LOJA ============ */
 // ====== LOJA COM CARRINHO ======
@@ -3650,9 +3707,13 @@ document.documentElement.addEventListener('keydown',e=>{
   if(esperandoEspacoDerrota){ if(e.code==='Space'){e.preventDefault(); fecharNotificacao();} return; }
   // Durante o alerta de encontro só ESPAÇO funciona
   if(esperandoEspaco){ if(e.code==='Space'){e.preventDefault(); window.iniciarBatalhaAgora();} return; }
-  // Pop-up de inicial: atalhos Q W E R
-  if(starterPopupAberto){ let k=e.key.toLowerCase();
-    let map={q:0,w:1,e:2,r:3}; if(k in map && STARTERS[map[k]]){ escolherInicial(STARTERS[map[k]].nome); } return; }
+  // Pop-up de inicial: atalhos selecionam; Enter confirma; Esc cancela
+  if(starterPopupAberto){ let k=(e.key||'').toLowerCase();
+    if(e.key==='Escape'){ fecharStarterPopup(); return; }
+    if(e.key==='Enter'){ confirmarStarter(); return; }
+    let map={q:'Bulbasaur',w:'Charmander',e:'Squirtle',r:'Pikachu'};
+    if(map[k] && _starterCards[map[k]]){ selecionarStarter(map[k]); }
+    return; }
   if(e.key==='Escape'){ if($('modal-mapa').style.display==='flex'){fecharMapa();return;} if(emMochila){fecharMochila();return;} if(emLoja){fecharLoja();return;} if($('modal-custom').style.display==='flex'){fecharCustom();return;} if(emParty){fecharParty();return;} if(emPokedex){fecharPokedex();return;} }
   // Com a mochila aberta: R/B/E fecham; outras teclas ficam bloqueadas
   if(emMochila){ if(['r','b','e'].includes((e.key||'').toLowerCase())) fecharMochila(); return; }
