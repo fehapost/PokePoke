@@ -666,9 +666,17 @@ body{
   font-weight:700; cursor:pointer; display:grid; place-items:center; font-size:13px}
 .btn-dir:active{background:var(--accent); color:#fff}
 .btn-dir.center{background:#0c1220; color:var(--accent)}
-/* botões de ação dentro do d-pad: Q/Espaço (destaque) e E (ação) */
-.btn-dir.alt{background:#222a3d; color:var(--gold); font-weight:800; font-size:12px}
+/* setas de movimento: azul (destaque) */
+.btn-dir.arrow{background:var(--accent); color:#fff; border-color:var(--accent); font-size:16px}
+.btn-dir.arrow:active{filter:brightness(1.15)}
+/* Q e E: redondos */
+.btn-dir.round{border-radius:50%}
+.btn-dir.alt{background:#222a3d; color:var(--gold); font-weight:800; font-size:13px}
 .btn-dir.act2{background:#0c1220; color:var(--accent); font-weight:800; font-size:15px}
+/* Espaço: linha própria abaixo do ↓, largura de 3 botões */
+.d-pad{grid-template-rows:repeat(3,42px) 36px}
+.btn-dir.esp-wide{grid-column:1 / -1; height:36px; border-radius:9px;
+  background:#222a3d; color:var(--gold); font-weight:800; font-size:12px; letter-spacing:.5px}
 .btn-circ.bag{background:#c08a3e; color:#2a1c08; border-color:#c08a3e}
 
 /* Config / intro modals */
