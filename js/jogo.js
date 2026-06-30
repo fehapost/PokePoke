@@ -2,7 +2,7 @@
 /* ============ STATE ============ */
 // Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
 // Bump aqui a cada mudança que você quiser marcar como nova versão.
-const VERSAO_JOGO='1.4.0';
+const VERSAO_JOGO='1.5.0';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -471,12 +471,12 @@ DADOS_151.forEach(p=>{let d=p.split('|');
   registroDex[d[1]]='oculto';});
 
 const RARIDADE_INFO={
-  comum:          {nome:'Comum',            cor:'#9CA3AF', borda:'#9CA3AF', grad:'linear-gradient(160deg,#1a2030,#141925)',                           peso:100, mult:0.1, minLevel:1},
-  incomum:        {nome:'Incomum',          cor:'#22C55E', borda:'#22C55E', grad:'linear-gradient(160deg,#10241a,#0f1a16)',                           peso:55,  mult:0.2, minLevel:5},
-  raro:           {nome:'Raro',             cor:'#3B82F6', borda:'#3B82F6', grad:'linear-gradient(160deg,#101f3a,#0e1626)',                           peso:24,  mult:0.3, minLevel:30},
-  superraro:      {nome:'Super Raro',       cor:'#A855F7', borda:'#A855F7', grad:'linear-gradient(160deg,#23123a,#160e26)',                           peso:9,   mult:0.4, minLevel:65},
-  lendario:       {nome:'Lendário',         cor:'#FACC15', borda:'#FACC15', grad:'linear-gradient(160deg,#2a2207,#1a1408)',                           peso:2,   mult:0.5, minLevel:80},
-  lendariosupremo:{nome:'Lendário Supremo', cor:'#DC2626', borda:'#FACC15', grad:'linear-gradient(160deg,#3a0d0d 0%,#2a1206 55%,#1c0a06 100%)',       peso:1,   mult:0.6, minLevel:90},
+  comum:          {nome:'Comum',            cor:'#9CA3AF', borda:'#9CA3AF', grad:'linear-gradient(160deg,#1a2030,#141925)',                           peso:100, mult:0.35, minLevel:1},
+  incomum:        {nome:'Incomum',          cor:'#22C55E', borda:'#22C55E', grad:'linear-gradient(160deg,#10241a,#0f1a16)',                           peso:55,  mult:0.4, minLevel:5},
+  raro:           {nome:'Raro',             cor:'#3B82F6', borda:'#3B82F6', grad:'linear-gradient(160deg,#101f3a,#0e1626)',                           peso:24,  mult:0.45, minLevel:30},
+  superraro:      {nome:'Super Raro',       cor:'#A855F7', borda:'#A855F7', grad:'linear-gradient(160deg,#23123a,#160e26)',                           peso:9,   mult:0.5, minLevel:65},
+  lendario:       {nome:'Lendário',         cor:'#FACC15', borda:'#FACC15', grad:'linear-gradient(160deg,#2a2207,#1a1408)',                           peso:2,   mult:0.55, minLevel:80},
+  lendariosupremo:{nome:'Lendário Supremo', cor:'#DC2626', borda:'#FACC15', grad:'linear-gradient(160deg,#3a0d0d 0%,#2a1206 55%,#1c0a06 100%)',       peso:1,   mult:0.65, minLevel:90},
   mitico:         {nome:'Mítico',           cor:'#EC4899', borda:'#EC4899', grad:'linear-gradient(160deg,#2e0f24,#1c0a18)',                           peso:1,   mult:0.7, minLevel:85}};
 function rarInfo(r){return RARIDADE_INFO[r]||RARIDADE_INFO.comum;}
 
