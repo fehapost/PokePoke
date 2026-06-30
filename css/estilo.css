@@ -666,6 +666,9 @@ body{
 #controles{width:auto; flex:0 0 auto; display:flex; flex-direction:column; gap:14px; align-items:center; justify-content:space-between;
   background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
   border-radius:14px; padding:14px; box-shadow:var(--shadow)}
+/* Config + Stats no topo-esquerdo */
+.ctrl-top{align-self:flex-start; display:flex; gap:8px}
+.ctrl-top .btn-esc{align-self:auto}
 /* Opções no topo-esquerdo, tipo ESC */
 .btn-esc{align-self:flex-start; width:60px; height:46px; border-radius:10px; border:1px solid var(--line);
   background:var(--panel2); color:var(--ink); font-size:24px; cursor:pointer; display:grid; place-items:center}

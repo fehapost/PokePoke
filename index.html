@@ -24,13 +24,14 @@
   <div class="game-row">
    <!-- Controls (left column) -->
    <div id="controles">
-    <!-- Opções no topo, tipo ESC -->
-    <button class="btn-esc" onclick="alternarConfig()" title="Opções">⚙</button>
-    <!-- Duas fileiras de 3: Q ↑ E / ← ↓ → -->
+    <!-- Config + Stats no topo -->
+    <div class="ctrl-top">
+      <button class="btn-esc" onclick="alternarConfig()" title="Opções">⚙</button>
+      <button class="btn-esc" onclick="alternarStats()" title="Stats">📊</button>
+    </div>
+    <!-- Apenas as SETAS (d-pad em cruz) -->
     <div class="botoes-grid">
-      <button class="btn-dir round alt" onclick="alternarParty()" title="Time">Q</button>
-      <button class="btn-dir arrow" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button>
-      <button class="btn-dir round act2" onclick="interagirBotaoE()" title="Ação">E</button>
+      <button class="btn-dir arrow" style="grid-column:2; grid-row:1" ontouchstart="forcarMovimento('w')" onclick="forcarMovimento('w')">↑</button>
       <button class="btn-dir arrow" style="grid-column:1; grid-row:2" ontouchstart="forcarMovimento('a')" onclick="forcarMovimento('a')">←</button>
       <button class="btn-dir arrow" style="grid-column:3; grid-row:2" ontouchstart="forcarMovimento('d')" onclick="forcarMovimento('d')">→</button>
       <button class="btn-dir arrow" style="grid-column:2; grid-row:3" ontouchstart="forcarMovimento('s')" onclick="forcarMovimento('s')">↓</button>
@@ -144,18 +145,14 @@
        <div class="dot"></div>
        <div>NOVA REGION<small>Pokémon Engine · v2</small></div>
      </div>
-     <div class="side-chips">
-       <span class="chip" id="chip-time">Time: 0/6</span>
-       <span class="chip" id="chip-dinheiro">₽ 0</span>
-       <span class="chip" id="chip-dex">Dex: 0</span>
-     </div>
-     <!-- Botões de ação (Dex / Visual / Mapa / Mochila) -->
+     <!-- Botões de ação: Q E B R M (com descritivo) -->
      <div class="vg-acoes">
        <div class="vg-cluster">
-         <div class="vg-btn"><button class="btn-circ red" onclick="alternarPokedex()">O</button><span>Dex</span></div>
-         <div class="vg-btn"><button class="btn-circ vis" onclick="abrirCustom()">C</button><span>Visual</span></div>
-         <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
+         <div class="vg-btn"><button class="btn-circ gold" onclick="alternarParty()">Q</button><span>Time</span></div>
+         <div class="vg-btn"><button class="btn-circ act" onclick="interagirBotaoE()">E</button><span>Ação</span></div>
+         <div class="vg-btn"><button class="btn-circ back" onclick="voltarBotaoB()">B</button><span>Voltar</span></div>
          <div class="vg-btn"><button class="btn-circ bag" onclick="abrirMochila()">R</button><span>Mochila</span></div>
+         <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
        </div>
      </div>
      <!-- Versão do jogo (discreta, canto inferior direito) — texto definido por VERSAO_JOGO em jogo.js -->
@@ -163,7 +160,7 @@
    </aside>
   </div>
 
-  <div class="hint">Mova com <span class="kbd">W A S D</span> · Interaja <span class="kbd">E</span> · Time <span class="kbd">Q</span> · Dex <span class="kbd">O</span> · Batalha na grama <span class="kbd">Espaço</span></div>
+  <div class="hint">Mova com <span class="kbd">W A S D</span> · Ação <span class="kbd">E</span> · Voltar <span class="kbd">B</span> · Time <span class="kbd">Q</span> · Mochila <span class="kbd">R</span> · Mapa <span class="kbd">M</span> · Batalha na grama <span class="kbd">Espaço</span></div>
 </div>
 
 <!-- Minimapa modal -->
@@ -196,6 +193,25 @@
     </div>
     <div class="row-btns">
       <button class="btn-acao btn-ghost" onclick="alternarConfig()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats modal (Time / Dinheiro / Dex) -->
+<div id="modal-stats" class="modal">
+  <div class="sheet" style="max-width:300px">
+    <h3>📊 Stats</h3>
+    <div class="side-chips" style="margin-bottom:12px">
+      <span class="chip" id="chip-time">Time: 0/6</span>
+      <span class="chip" id="chip-dinheiro">₽ 0</span>
+      <span class="chip" id="chip-dex">Dex: 0</span>
+    </div>
+    <div class="side-actions" style="margin-bottom:12px">
+      <button class="side-btn s-red" onclick="opcaoMenuStats(alternarPokedex)">📕 Pokédex <small>O</small></button>
+      <button class="side-btn s-green" onclick="opcaoMenuStats(abrirCustom)">🎨 Visual <small>C</small></button>
+    </div>
+    <div class="row-btns">
+      <button class="btn-acao btn-ghost" onclick="fecharStats()">Fechar</button>
     </div>
   </div>
 </div>

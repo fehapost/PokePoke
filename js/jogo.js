@@ -2,7 +2,7 @@
 /* ============ STATE ============ */
 // Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
 // Bump aqui a cada mudança que você quiser marcar como nova versão.
-const VERSAO_JOGO='1.5.0';
+const VERSAO_JOGO='1.6.0';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -174,6 +174,9 @@ function carregarJogo(){
 /* ============ AUDIO ============ */
 let audioCtx=null, loopAudio=null, volMestre=0.25, mutado=false; // música começa a 25%
 function alternarConfig(){const m=$('modal-configuracoes'); m.style.display=m.style.display==='flex'?'none':'flex';}
+function alternarStats(){const m=$('modal-stats'); if(!m)return; if(typeof atualizarChips==='function')atualizarChips(); m.style.display=m.style.display==='flex'?'none':'flex';}
+function fecharStats(){const m=$('modal-stats'); if(m) m.style.display='none';}
+function opcaoMenuStats(fn){ const m=$('modal-stats'); if(m) m.style.display='none'; if(typeof fn==='function') fn(); }
 // fecha o menu Opções e executa a ação escolhida (Time/Dex/Visual/Mapa/Salvar)
 function opcaoMenu(fn){ $('modal-configuracoes').style.display='none'; if(typeof fn==='function') fn(); }
 // botão Espaço do d-pad: mesmo efeito da barra de espaço (confirma encontro / inicia batalha no mato)
