@@ -145,15 +145,15 @@
        <div class="dot"></div>
        <div>NOVA REGION<small>Pokémon Engine · v2</small></div>
      </div>
-     <!-- Botões de ação em COLUNA (de baixo p/ cima: E, B, R, Pokédex, Mapa, Q) -->
+     <!-- Botões de ação em grade 2x (de baixo p/ cima: [E,B] · [R,Pokédex] · [Mapa,Q]) -->
      <div class="vg-acoes">
-       <div class="vg-cluster vg-col">
-         <div class="vg-btn"><button class="btn-circ btn-time" onclick="alternarParty()">Q</button><span>Time</span></div>
+       <div class="vg-cluster">
          <div class="vg-btn"><button class="btn-circ map" onclick="abrirMapa()">M</button><span>Mapa</span></div>
-         <div class="vg-btn"><button class="btn-circ red" onclick="alternarPokedex()">O</button><span>Pokédex</span></div>
+         <div class="vg-btn"><button class="btn-circ btn-time" onclick="alternarParty()">Q</button><span>Time</span></div>
          <div class="vg-btn"><button class="btn-circ gold" onclick="abrirMochila()">R</button><span>Mochila</span></div>
-         <div class="vg-btn"><button class="btn-circ vis" onclick="voltarBotaoB()">B</button><span>Voltar</span></div>
+         <div class="vg-btn"><button class="btn-circ red" onclick="alternarPokedex()">O</button><span>Pokédex</span></div>
          <div class="vg-btn"><button class="btn-circ act" onclick="interagirBotaoE()">E</button><span>Ação</span></div>
+         <div class="vg-btn"><button class="btn-circ vis" onclick="voltarBotaoB()">B</button><span>Voltar</span></div>
        </div>
      </div>
      <!-- Versão do jogo (discreta, canto inferior direito) — texto definido por VERSAO_JOGO em jogo.js -->
