@@ -2,7 +2,7 @@
 /* ============ STATE ============ */
 // Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
 // Bump aqui a cada mudança que você quiser marcar como nova versão.
-const VERSAO_JOGO='1.3.0';
+const VERSAO_JOGO='1.3.1';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -52,7 +52,7 @@ const FILTRO_BOLA_TIPO={
   GRAMA:   'hue-rotate(110deg) saturate(1.5)',
   FOGO:    'hue-rotate(20deg) saturate(1.4) brightness(1.08)',
   'ÁGUA':  'hue-rotate(205deg) saturate(1.6)',
-  'ELÉTRICO':'hue-rotate(60deg) saturate(1.9) brightness(1.2)'
+  'ELÉTRICO':'hue-rotate(55deg) saturate(2.4) brightness(1.35)'
 };
 function filtroBolaTipo(tp){ return FILTRO_BOLA_TIPO[tp]||'none'; }
 // HTML da esfera de um inicial. aberta=false -> fechada; aberta=true -> esfera ABERTA (após a escolha).
@@ -2859,15 +2859,16 @@ function abrirStarterPopup(modo){
   $('starter-titulo').innerText = (modo==='pikachu') ? 'Quer o Pikachu?' : 'Escolha seu parceiro inicial';
   $('starter-sub').innerText    = (modo==='pikachu') ? 'Confirme em OK ou cancele.' : 'Selecione um Pokémon e confirme em OK.';
   const grid=$('starter-grid');
-  grid.style.gridTemplateColumns = (lista.length===1) ? '1fr' : 'repeat(2,1fr)';
+  // os 3 iniciais ficam lado a lado numa única linha de 3; Pikachu sozinho ocupa 1
+  grid.style.gridTemplateColumns = 'repeat('+lista.length+',1fr)';
   grid.innerHTML='';
   lista.forEach(s=>{let b=BASE_POKEMONS[s.nome];
     let tipos=pillTipo(b.tipo)+(b.tipo2?' '+pillTipo(b.tipo2):'');
     let cor=corTipo(s.nome);
     let card=document.createElement('div');
-    card.style.cssText='background:var(--panel); border:3px solid '+cor+'; border-radius:12px; padding:10px; cursor:pointer; text-align:center; transition:border-color .12s, box-shadow .12s, border-width .12s';
+    card.style.cssText='background:var(--panel); border:3px solid '+cor+'; border-radius:12px; padding:10px 6px; cursor:pointer; text-align:center; transition:border-color .12s, box-shadow .12s, border-width .12s';
     card.innerHTML=`<div style="font-size:11px; font-weight:800; color:${cor}">[${s.atalho}]</div>
-      <img src="${b.sprite}" style="width:64px; height:64px; image-rendering:pixelated"><div style="font-weight:700; font-size:13px">${b.nome}</div>
+      <img src="${b.sprite}" style="width:92px; height:92px; image-rendering:pixelated"><div style="font-weight:700; font-size:13px">${b.nome}</div>
       <div style="margin:4px 0">${tipos}</div>
       <div style="font-size:10px; color:var(--muted)">⚔ Atq ${b.atkBase} · 🛡 Def ${b.defBase} · ⚡ Vel ${b.velBase}</div>`;
     card.onclick=()=>selecionarStarter(s.nome);
