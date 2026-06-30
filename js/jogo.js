@@ -2,7 +2,7 @@
 /* ============ STATE ============ */
 // Versão do jogo (fonte única) — exibida discretamente no canto inferior direito da barra.
 // Bump aqui a cada mudança que você quiser marcar como nova versão.
-const VERSAO_JOGO='1.3.1';
+const VERSAO_JOGO='1.4.0';
 const TILE=30, LARGURA_MAPA=67, ALTURA_MAPA=48;
 const ICONE_BOLA_HTML='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="bola">';
 let ultimoPasso=0; const INTERVALO=132;
@@ -52,7 +52,7 @@ const FILTRO_BOLA_TIPO={
   GRAMA:   'hue-rotate(110deg) saturate(1.5)',
   FOGO:    'hue-rotate(20deg) saturate(1.4) brightness(1.08)',
   'ÁGUA':  'hue-rotate(205deg) saturate(1.6)',
-  'ELÉTRICO':'hue-rotate(55deg) saturate(2.4) brightness(1.35)'
+  'ELÉTRICO':'grayscale(1) sepia(1) saturate(8) hue-rotate(8deg) brightness(1.15)' /* amarelo de verdade (hue-rotate dava verde) */
 };
 function filtroBolaTipo(tp){ return FILTRO_BOLA_TIPO[tp]||'none'; }
 // HTML da esfera de um inicial. aberta=false -> fechada; aberta=true -> esfera ABERTA (após a escolha).
@@ -1183,6 +1183,7 @@ function cercadoMato(ox,oy,larg,alt){
   linha('Y36','Y42',ARV);        // árvores normais na coluna Y
   linha('BA34','BA41',ARV);      // árvores na coluna BA
   bloco('BM39','BN44',MATO);     // grama alta (mato) em BM39..BN44
+  set('M5',91);                  // cruz vermelha um bloco acima do computador de cura (M6) no laboratório
 })();
 
 // ===== Efeito de FOLHAS ao vento: passam da direita (BC28) p/ a esquerda (AR28), em world coords =====
@@ -2390,6 +2391,7 @@ function desenharMundo(){
       else if(v===5)tile.classList.add('tapete');
       else if(v===6)tile.classList.add('mesa');
       else if(v===7){tile.classList.add('chao-casa','pc-tile'); tile.innerText='💻';}
+      else if(v===91){tile.classList.add('cruz-vermelha'); tile.innerText='✚';}  // placa de cura (cruz vermelha)
       else if(v===8)tile.classList.add('fora-limite');
       else if(v===9){tile.classList.add('chao-casa'); tile.innerText='📚';}
       else if(v===10)tile.classList.add('estrada');
@@ -2868,7 +2870,7 @@ function abrirStarterPopup(modo){
     let card=document.createElement('div');
     card.style.cssText='background:var(--panel); border:3px solid '+cor+'; border-radius:12px; padding:10px 6px; cursor:pointer; text-align:center; transition:border-color .12s, box-shadow .12s, border-width .12s';
     card.innerHTML=`<div style="font-size:11px; font-weight:800; color:${cor}">[${s.atalho}]</div>
-      <img src="${b.sprite}" style="width:92px; height:92px; image-rendering:pixelated"><div style="font-weight:700; font-size:13px">${b.nome}</div>
+      <img src="${b.sprite}" style="width:101px; height:101px; image-rendering:pixelated"><div style="font-weight:700; font-size:13px">${b.nome}</div>
       <div style="margin:4px 0">${tipos}</div>
       <div style="font-size:10px; color:var(--muted)">⚔ Atq ${b.atkBase} · 🛡 Def ${b.defBase} · ⚡ Vel ${b.velBase}</div>`;
     card.onclick=()=>selecionarStarter(s.nome);
@@ -3023,7 +3025,7 @@ function venderPokemon(idx){
 }
 
 /* ============ MOVEMENT ============ */
-const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82,83,84,85,87];
+const SOLIDOS=[1,4,6,7,8,9,11,12,13,16,17,19, 20,21,22, 25, 26, 29, 30, 34, 35, 36, 37, 39, 41,42,43,44,45,46,47,48,49,50,51,55,56,57,58,59,60,66,69,70,74,75,81,82,83,84,85,87,91];
 function forcarMovimento(letra){
   if(!jogoIniciado||mostrandoNotificacao||emLoja||emCutscene||emMochila)return;
   let agora=Date.now(); if(agora-ultimoPasso<INTERVALO)return; ultimoPasso=agora;
@@ -3205,7 +3207,10 @@ function iniciarBatalhaTreinador(t){
   gatilhoBatalha(()=>{montarArena(); textoBatalha.innerText=`${t.nome} quer batalhar!`; iniciarLoopATB();});
 }
 function iniciarLoopATB(){
-  clearInterval(loopATB); limparFxTimers(); atbJogador=0; atbInimigo=0; turnoPausado=false; _golpeJaDado=false; atualizarHps(); painelBotoes.innerHTML='';
+  // Começa PAUSADO: o jogador SEMPRE escolhe a ação primeiro (lutar/fugir/etc).
+  // Só depois da 1ª escolha a contagem de velocidade (ATB) passa a decidir a ordem.
+  clearInterval(loopATB); limparFxTimers(); atbJogador=0; atbInimigo=0; turnoPausado=true; _golpeJaDado=false; atualizarHps(); painelBotoes.innerHTML='';
+  $('bar-atb-jogador').style.width='0%'; $('bar-atb-inimigo').style.width='0%';
   loopATB=setInterval(()=>{
     if(emBatalha&&!turnoPausado&&!mostrandoNotificacao&&!esperandoEspaco){
       atbJogador+=pkmAtivoJogador.velocidade*0.12; atbInimigo+=pkmInimigo.velocidade*0.12;
@@ -3214,6 +3219,8 @@ function iniciarLoopATB(){
       else if(atbJogador>=100)triggerTurnoJogador(); else if(atbInimigo>=100)turnoInimigo();
     }
   },50);
+  // dá ao jogador a primeira escolha (após mostrar rapidamente o texto de início)
+  let _t=setTimeout(()=>{ if(emBatalha) triggerTurnoJogador(); }, 850); fxTimers.push(_t);
 }
 function triggerTurnoJogador(){turnoPausado=true; atbJogador=0; textoBatalha.innerText=`Sua vez! O que ${pkmAtivoJogador.nome} fará?`; menuPrincipal();}
 

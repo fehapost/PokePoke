@@ -540,6 +540,11 @@ body{
 #evo-prompt{position:absolute; left:0; right:0; bottom:20px; z-index:3; display:none; justify-content:center}
 #evo-prompt #evo-ok{width:170px; height:42px}
 
+/* Placa de cura: cruz vermelha (acima do computador de cura) */
+.cruz-vermelha{display:flex; align-items:center; justify-content:center; box-sizing:border-box;
+  background:#ffffff; color:#e23b3b; font-weight:900; font-size:20px; line-height:1;
+  border:2px solid #e23b3b; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,.4); z-index:30}
+
 /* Battle screen */
 #tela-batalha{padding:0; overflow:hidden}
 .arena{flex:1; position:relative;
